@@ -15,6 +15,15 @@ git add -A
 git commit -m "(descripcion del commit a guardar)"
 git push
 ```
+### Ejecutar el Programa
+Compilar
+```sh
+gcc proyecto0.c -o proyecto
+```
+Ejecutar
+```sh
+./proyecto
+```
 ### Referencias
 * Github = http://rogerdudler.github.io/git-guide/index.es.html
 
