@@ -18,7 +18,7 @@ git push
 ### Ejecutar el Programa
 Compilar
 ```sh
-gcc proyecto0.c -o proyecto
+gcc proyecto0.c -o proyecto -lpthread
 ```
 Ejecutar
 ```sh
