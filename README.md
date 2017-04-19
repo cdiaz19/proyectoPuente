@@ -18,11 +18,11 @@ git push
 ### Ejecutar el Programa
 Compilar
 ```sh
-gcc proyecto0.c -o proyecto -lpthread
+gcc *nombre del archivo*.c -o *nombre para el ejecutable* -lpthread
 ```
 Ejecutar
 ```sh
-./proyecto
+./*nombre del ejecutable*
 ```
 ### Referencias
 * Github = http://rogerdudler.github.io/git-guide/index.es.html
