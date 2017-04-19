@@ -140,7 +140,7 @@ void loadArchivo() {
   int decimal = 10;
   int numeroanterior;
 
-  ptr_file = fopen("parametros", "r");
+  ptr_file = fopen("Parametros", "r");
   if (!ptr_file) {
     printf("No se encontro el archivo");
     return;
