@@ -9,69 +9,107 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define numCarsOE 12
-#define numCarsEO 10
-#define NumVector 8
+#define BRIDGE_DIRECTION_EAST 0x01
+#define BRIDGE_DIRECTION_WEST 0x02
 
-static pthread_mutex_t mutexes[NumVector];
+int longbridge;
+int arrivetime;
+int traveltime;
+int semaphore;
+int carsOE;
+int carsEO;
 
 /* Estructuras */
-typedef struct StructDriver {
-    int type;
-    int direction;
-} QStructDriver;
-
 typedef struct StructBridge {
-    int size;
+    int cars;
+    int direction;
+    int oficial;
+    pthread_mutex_t mutex;
+    pthread_cond_t empty;
 } QStructBridge;
 
-/* Metodos */
-int randomType(){
+int random(){
   return (rand() % 2);
 }
 
-void *createDiverThread(QStructDriver *QSEst) {
+static int runThread(int carsOE, int carsEO) {
+  srand(time(NULL));
+  int i = 0, n = carsEO + carsOE;
+  pthread_t thread[n];
+  int random = random(); 
+  int cOE = carsOE;
+  int cEO = carsEO;
 
-  QSEst->type = randomType(); 
-  QSEst->direction = 1;
-  printf( "Tipo: %i - Direccion: %i. \n", QSEst->type, QSEst->direction );
+  while (i < n) { 
+    if(r == 2 && o > 0) {
+      if (pthread_create(&thread[i], NULL,
+                westo, &shared_bridgeo)) {
+        fprintf(stderr, "thread creation failed\n");
+        return EXIT_FAILURE;
+      }
+        cEO--;
+        i++;
+      }
+      if(r == 1 && e > 0) {            
+        if (pthread_create(&thread[i], NULL,
+                easto, &shared_bridgeo)) {
+          fprintf(stderr, "thread creation failed\n");
+          return EXIT_FAILURE;
+        }            
+        cOE--;
+        i++;
+      }            
+      r = rand() % 2 + 1;  
+    }
+
+    for (i = 0; i < n; i++) {
+      if (thread[i]) pthread_join(thread[i], NULL);
+    }
+    return EXIT_SUCCESS;
 }
 
-void bridgeMutex(int arra1[]) {
-  //Crea el vector de Mutex
-  printf( "\nVector de Mutex. \n" );
-  for (int i = 0; i < NumVector; i++) {
-    pthread_mutex_init(&mutexes[i], NULL);
+void loadArchivo() {
+  FILE *ptr_file;
+  char buf;
+  int variables[6];
+  int i = 0;
+  int decimal = 10;
+  int numeroanterior;
+
+  ptr_file = fopen("parametros", "r");
+  if (!ptr_file) {
+    printf("No se encontro el archivo");
+    return;
   }
 
-  for (int i=0; i < numCarsOE; i++) {
-    printf("%i ", arra1[i] );
+  while (feof(ptr_file) == 0) {
+    buf = fgetc(ptr_file);
+    if (buf == ' ') {
+      numeroanterior = 0;
+      decimal = 10;
+      i++;
+      
+    } else {
+      if (isdigit(buf)) {
+        numeroanterior = buf;
+        variables[i] = numeroanterior;
+      }
+    }
   }
+
+  fclose(ptr_file);
+  longbridge = variables[0];
+  arrivetime = variables[1];
+  traveltime = variables[2];
+  semaphore = variables[3];
+  carsOE = variables[4];
+  carsEO = variables[5];
 }
 
 int main(void) {
-  srand(time(NULL));
-  QStructDriver QSEst;
-  pthread_t thread;
-  int arrayDriverOE[numCarsOE];
-  int arrayDriverEO[numCarsEO];
 
-  //Realiza hilos de Carros Oeste - Este
-  printf( "Se Crean los %i Carros de [ O-E ]. \n", numCarsOE );
+  loadArchivo();
+  int c, nw = carsOE, ne = carsEO;
 
-  for ( int i = 0 ; i < numCarsOE ; i ++ ) {
-    arrayDriverOE[i] = pthread_create( &thread, NULL, createDiverThread, (void*) &QSEst );
-    pthread_join ( thread , NULL );
-  }
-
-  //Realiza hilos de Carros Oeste - Este
-  printf( "\nSe Crean los %i Carros de [ E-O ]. \n", numCarsEO );
-  for ( int i = 0 ; i < numCarsEO ; i ++ ) {
-    arrayDriverEO[i] = pthread_create ( &thread, NULL, createDiverThread, (void*) &QSEst );
-    pthread_join ( thread, NULL );
-  }
-
-  bridgeMutex(arrayDriverOE);
-
-  return 0;
+  return runThread(nw, ne);
 }
