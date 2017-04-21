@@ -47,7 +47,7 @@ static void arrive(QStructBridge *bridge, int direction) {
   if(direction == 1) { fprintf(stderr, "Carro esperando en Este %ju\n", CPU_time); }
   if(direction == 2) { fprintf(stderr, "Carro esperando en Oeste %ju\n", CPU_time); }
   pthread_mutex_lock(&bridge->mutex);
-    
+  
   while ((bridge->cars > 0) && (bridge->cars > 1 || bridge->direction != direction || bridge->oficial > 4)) {
     pthread_cond_wait(&bridge->empty, &bridge->mutex);
     bridge->oficial--;
@@ -63,21 +63,22 @@ static void arrive(QStructBridge *bridge, int direction) {
 
 static void cross(QStructBridge *bridge) {
   clock_t CPU_time = clock();
-  
-  if(bridge->direction == 1) { fprintf(stderr, "Carro hacia el Este %ju\n", CPU_time); }
-  if(bridge->direction == 2) { fprintf(stderr, "Carro hacia el Oeste %ju\n", CPU_time); }
+
+  printf("%s\n", "-------------------------" );
+  if(bridge->direction == 1) { fprintf(stderr, "Carro entra del Este %ju\n", CPU_time); }
+  if(bridge->direction == 2) { fprintf(stderr, "Carro entra del Oeste %ju\n", CPU_time); }
   sleep(2);
 }
 
 static void leave(QStructBridge *bridge) {
-    clock_t CPU_time = clock();
-    pthread_mutex_lock(&bridge->mutex);
-    bridge->cars--;
-    pthread_cond_signal(&bridge->empty);
-    pthread_mutex_unlock(&bridge->mutex);
-    
-    if(bridge->direction == 1) { fprintf(stderr, "***Carro sale por Oeste %ju***\n", CPU_time); }
-    if(bridge->direction == 2) { fprintf(stderr, "***Carro sale por Este %ju***\n", CPU_time); }
+  clock_t CPU_time = clock();
+  pthread_mutex_lock(&bridge->mutex);
+  bridge->cars--;
+  pthread_cond_signal(&bridge->empty);
+  pthread_mutex_unlock(&bridge->mutex);
+  
+  if(bridge->direction == 1) { fprintf(stderr, "***Carro sale por Oeste %ju***\n", CPU_time); }
+  if(bridge->direction == 2) { fprintf(stderr, "***Carro sale por Este %ju***\n", CPU_time); }
 }
 
 static void drive(QStructBridge *bridge, int direction) {
