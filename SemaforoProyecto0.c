@@ -6,20 +6,20 @@
  *      Alonso Aguilar
  * 
  */
-#include <pthread.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <time.h>
 
-#include <stdio.h>
-#include <errno.h>
-#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <pthread.h>
+#include <stdlib.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stdio.h>
+#include <errno.h>
+#include <time.h>
 
 #define BRIDGE_DIRECTION_EAST 0x01
 #define BRIDGE_DIRECTION_WEST 0x02
@@ -50,40 +50,39 @@ static QStructBridge shared_bridgeo = {
 
 /* Metodos Semaforo */
 void error(char* errorInfo) {
-    fprintf(stderr,"%s",errorInfo);
-    exit(1);
+  fprintf(stderr,"%s",errorInfo);
+  exit(1);
 }
  
 void doSignal(int semid, int numSem) {
-    struct sembuf sops;
-    sops.sem_num = numSem;
-    sops.sem_op = 1;
-    sops.sem_flg = 0;
+  struct sembuf sops;
+  sops.sem_num = numSem;
+  sops.sem_op = 1;
+  sops.sem_flg = 0;
  
-    if (semop(semid, &sops, 1) == -1) {
-        perror(NULL);
-        error("Error al hacer Signal");
-    }
+  if (semop(semid, &sops, 1) == -1) {
+    perror(NULL);
+    error("Error al hacer Signal");
+  }
 }
  
 void doWait(int semid, int numSem) {
-    struct sembuf sops;
-    sops.sem_num = numSem; /* Sobre el primero, ... */
-    sops.sem_op = -1; /* ... un wait (resto 1) */
-    sops.sem_flg = 0;
+  struct sembuf sops;
+  sops.sem_num = numSem; /* Sobre el primero, ... */
+  sops.sem_op = -1; /* ... un wait (resto 1) */
+  sops.sem_flg = 0;
  
-    if (semop(semid, &sops, 1) == -1) {
-        perror(NULL);
-        error("Error al hacer el Wait");
-    }
+  if (semop(semid, &sops, 1) == -1) {
+    perror(NULL);
+    error("Error al hacer el Wait");
+  }
 }
  
-void initSem(int semid, int numSem, int valor) { //iniciar un semaforo
-  
-    if (semctl(semid, numSem, SETVAL, valor) < 0) {        
+void initSem(int semid, int numSem, int valor) {
+  if (semctl(semid, numSem, SETVAL, valor) < 0) {
     perror(NULL);
-        error("Error iniciando semaforo");
-    }
+    error("Error iniciando semaforo");
+  }
 }
 
 /* Metodos Carros */
@@ -134,6 +133,7 @@ static void drive(QStructBridge *bridge, int direction) {
 }
 
 static void* east(void *data) {
+
   drive((QStructBridge *) data, BRIDGE_DIRECTION_EAST);
   return NULL;
 }
@@ -179,7 +179,6 @@ static int runThread(int carsOE, int carsEO) {
       }
     }
     sleep(semaphoreTime);
-    //doSignal(semaforo,0);
     exit(0);
  
     default: /* CARROS ENTRAN DE ESTE - SALEN DE OESTE */
@@ -201,15 +200,11 @@ static int runThread(int carsOE, int carsEO) {
   }      
   sleep(10);
     
-     //Liberacion del semaforo
+  //Liberacion del semaforo
   if ((semctl(semaforo, 0, IPC_RMID)) == -1) {
     perror(NULL);
     error("Semaforo borrando");
   }
-
-  /*for (i = 0; i < n; i++) {
-    if (thread[i]) pthread_join(thread[i], NULL);
-  }*/
 
   return EXIT_SUCCESS;
 }
