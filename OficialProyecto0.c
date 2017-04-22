@@ -40,6 +40,7 @@ static QStructBridge shared_bridgeo = {
   .empty = PTHREAD_COND_INITIALIZER,
 };
 
+/* Metodos */
 static void arrive(QStructBridge *bridge, int direction) {
   bridge->oficial++;
   clock_t CPU_time = clock();

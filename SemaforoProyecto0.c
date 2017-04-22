@@ -13,16 +13,25 @@
 #include <ctype.h>
 #include <time.h>
 
-int longbridge;
-int arrivetime;
-int traveltime;
-int semaphore;
-int carsOE;
-int carsEO;
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
 
 #define BRIDGE_DIRECTION_EAST 0x01
 #define BRIDGE_DIRECTION_WEST 0x02
 
+int longbridge;
+int arrivetime;
+int traveltime;
+int semaphoreTime;
+int carsOE;
+int carsEO;
+
+/* Estructuras */
 typedef struct StructBridge {
   int cars;
   int direction;
@@ -39,23 +48,53 @@ static QStructBridge shared_bridgeo = {
   .empty = PTHREAD_COND_INITIALIZER,
 };
 
-typedef struct Semaforo{
-  int paso;
-}QSemaforo;
+/* Metodos Semaforo */
+void error(char* errorInfo) {
+    fprintf(stderr,"%s",errorInfo);
+    exit(1);
+}
+ 
+void doSignal(int semid, int numSem) {
+    struct sembuf sops;
+    sops.sem_num = numSem;
+    sops.sem_op = 1;
+    sops.sem_flg = 0;
+ 
+    if (semop(semid, &sops, 1) == -1) {
+        perror(NULL);
+        error("Error al hacer Signal");
+    }
+}
+ 
+void doWait(int semid, int numSem) {
+    struct sembuf sops;
+    sops.sem_num = numSem; /* Sobre el primero, ... */
+    sops.sem_op = -1; /* ... un wait (resto 1) */
+    sops.sem_flg = 0;
+ 
+    if (semop(semid, &sops, 1) == -1) {
+        perror(NULL);
+        error("Error al hacer el Wait");
+    }
+}
+ 
+void initSem(int semid, int numSem, int valor) { //iniciar un semaforo
   
-static QSemaforo shared_Semaforo= {
-  .paso=0,
-};
+    if (semctl(semid, numSem, SETVAL, valor) < 0) {        
+    perror(NULL);
+        error("Error iniciando semaforo");
+    }
+}
 
-/*metodos*/
+/* Metodos Carros */
 static void arrive(QStructBridge *bridge, int direction) {
   bridge->oficial++;
   clock_t CPU_time = clock();
 
-  if(direction == 1) { fprintf(stderr, "Carro esperando en Este %ju\n", CPU_time); }
-  if(direction == 2) { fprintf(stderr, "Carro esperando en Oeste %ju\n", CPU_time); }
+  //if(direction == 1) { fprintf(stderr, "Carro esperando en Este %ju\n", CPU_time); }
+  //if(direction == 2) { fprintf(stderr, "Carro esperando en Oeste %ju\n", CPU_time); }
   pthread_mutex_lock(&bridge->mutex);
-    
+  
   while ((bridge->cars > 0) && (bridge->cars > 1 || bridge->direction != direction || bridge->oficial > 4)) {
     pthread_cond_wait(&bridge->empty, &bridge->mutex);
     bridge->oficial--;
@@ -71,21 +110,21 @@ static void arrive(QStructBridge *bridge, int direction) {
 
 static void cross(QStructBridge *bridge) {
   clock_t CPU_time = clock();
-  
-  if(bridge->direction == 1) { fprintf(stderr, "Carro hacia el Este %ju\n", CPU_time); }
-  if(bridge->direction == 2) { fprintf(stderr, "Carro hacia el Oeste %ju\n", CPU_time); }
+
+  if(bridge->direction == 1) { fprintf(stderr, "Carro entra del Este %ju\n", CPU_time); }
+  if(bridge->direction == 2) { fprintf(stderr, "Carro entra del Oeste %ju\n", CPU_time); }
   sleep(2);
 }
 
 static void leave(QStructBridge *bridge) {
-    clock_t CPU_time = clock();
-    pthread_mutex_lock(&bridge->mutex);
-    bridge->cars--;
-    pthread_cond_signal(&bridge->empty);
-    pthread_mutex_unlock(&bridge->mutex);
-    
-    if(bridge->direction == 1) { fprintf(stderr, "***Carro sale por Oeste %ju***\n", CPU_time); }
-    if(bridge->direction == 2) { fprintf(stderr, "***Carro sale por Este %ju***\n", CPU_time); }
+  clock_t CPU_time = clock();
+  pthread_mutex_lock(&bridge->mutex);
+  bridge->cars--;
+  pthread_cond_signal(&bridge->empty);
+  pthread_mutex_unlock(&bridge->mutex);
+  
+  if(bridge->direction == 1) { fprintf(stderr, "***Carro sale por Oeste %ju***\n", CPU_time); }
+  if(bridge->direction == 2) { fprintf(stderr, "***Carro sale por Este %ju***\n", CPU_time); }
 }
 
 static void drive(QStructBridge *bridge, int direction) {
@@ -104,35 +143,6 @@ static void* west(void *data) {
   return NULL;
 }
 
-static void* Semaforo(int time){
-  struct  Semaforo SW ={0};
-  struct  Semaforo SE ={0};
-  int clock=time;
-
-  if (SW.paso==1&&SE.paso==0){
-
-    while (clock!=0){
-      west;
-      clock--;
-    }
-    clock==time;
-    SW.paso=0;
-    SE.paso=1;
-  }
-
-  else {
-    
-    while(clock!=0){
-      east;
-      clock--;
-    }
-    clock==time;
-    SW.paso=1;
-    SE.paso=0;
-  }
-
-}
-
 static int runThread(int carsOE, int carsEO) {
   srand(time(NULL));
   int i = 0, n = carsEO + carsOE;
@@ -140,32 +150,67 @@ static int runThread(int carsOE, int carsEO) {
   int random = rand() % 2 + 1;; 
   int cOE = carsOE;
   int cEO = carsEO;
-
-  while (i < n) { 
-    if(random == 2 && cEO > 0) {
-      if (pthread_create(&thread[i], NULL,
-                west, &shared_bridgeo)) {
-        fprintf(stderr, "Error al crear hilo\n");
-        return EXIT_FAILURE;
+  int semaforo;
+  
+  if((semaforo=semget(IPC_PRIVATE,1,IPC_CREAT | 0700))<0) {
+    perror(NULL);
+    error("Semaforo: semget");
+  }
+    
+  initSem(semaforo, 0, 1);
+    
+  switch (fork()) {
+    case -1:
+    error("Error en el fork"); 
+         
+    case 0:  /* CARROS ENTRAN DE OESTE - SALEN DE ESTE */
+    doWait(semaforo,0);
+    puts("                             ");
+    puts("Semaforo -> ENTRAN DE OESTE - SALEN DE ESTE");
+    while (i < carsOE) {
+      if(cOE > 0) {
+        if (pthread_create(&thread[i], NULL,
+              west, &shared_bridgeo)) {
+          fprintf(stderr, "Error al crear hilo\n");
+          return EXIT_FAILURE;
+        }
+        cOE--;
+        i++;
       }
-      cEO--;
-      i++;
     }
-    if(random == 1 && cOE > 0) {            
-      if (pthread_create(&thread[i], NULL,
-                east, &shared_bridgeo)) {
-        fprintf(stderr, "Error al crear hilo\n");
-        return EXIT_FAILURE;
-      }            
-      cOE--;
-      i++;
-    }            
-    random = rand() % 2 + 1;  
+    sleep(semaphoreTime);
+    //doSignal(semaforo,0);
+    exit(0);
+ 
+    default: /* CARROS ENTRAN DE ESTE - SALEN DE OESTE */
+    doWait(semaforo,0);
+    puts("Semaforo -> ENTRAN DE ESTE - SALEN DE OESTE");
+    while (i < carsEO) {
+      if(cEO > 0) {            
+        if (pthread_create(&thread[i], NULL,
+              east, &shared_bridgeo)) {
+          fprintf(stderr, "Error al crear hilo\n");
+          return EXIT_FAILURE;
+        }            
+        cEO--;
+        i++;
+      }
+    }
+    sleep(semaphoreTime);
+    doSignal(semaforo,0);   
+  }      
+  sleep(10);
+    
+     //Liberacion del semaforo
+  if ((semctl(semaforo, 0, IPC_RMID)) == -1) {
+    perror(NULL);
+    error("Semaforo borrando");
   }
 
-  for (i = 0; i < n; i++) {
+  /*for (i = 0; i < n; i++) {
     if (thread[i]) pthread_join(thread[i], NULL);
-  }
+  }*/
+
   return EXIT_SUCCESS;
 }
 
@@ -199,12 +244,12 @@ void loadArchivo() {
   }
 
   fclose(ptr_file);
-  longbridge = variables[0];
-  arrivetime = variables[1];
-  traveltime = variables[2];
-  semaphore = variables[3];
-  carsOE = variables[4];
-  carsEO = variables[5];
+  longbridge = 8;
+  arrivetime = 6;
+  traveltime = 9;
+  semaphoreTime = 12;
+  carsOE = 8;
+  carsEO = 8;
 }
 
 int main(void) {
