@@ -54,7 +54,7 @@ void error(char* errorInfo) {
   exit(1);
 }
  
-void doSignal(int semid, int numSem) {
+void doSignal(int semid, int numSem) { //INicializa el Signal del semaforo
   struct sembuf sops;
   sops.sem_num = numSem;
   sops.sem_op = 1;
@@ -66,7 +66,7 @@ void doSignal(int semid, int numSem) {
   }
 }
  
-void doWait(int semid, int numSem) {
+void doWait(int semid, int numSem) { //Espera para saber que hilo va.
   struct sembuf sops;
   sops.sem_num = numSem; /* Sobre el primero, ... */
   sops.sem_op = -1; /* ... un wait (resto 1) */
@@ -95,7 +95,7 @@ static void arrive(QStructBridge *bridge, int direction) {
   pthread_mutex_lock(&bridge->mutex);
   
   while ((bridge->cars > 0) && (bridge->cars > 1 || bridge->direction != direction || bridge->oficial > 4)) {
-    pthread_cond_wait(&bridge->empty, &bridge->mutex);
+    pthread_cond_wait(&bridge->empty, &bridge->mutex); //bloquea el puente de mutex, apenas este vacio
     bridge->oficial--;
   }
   if ((bridge->cars == 0) || (bridge->oficial>3)) {
@@ -104,7 +104,7 @@ static void arrive(QStructBridge *bridge, int direction) {
   }
     
   bridge->cars++;
-  pthread_mutex_unlock(&bridge->mutex);
+  pthread_mutex_unlock(&bridge->mutex); //bloquea el mutex del puente
 }
 
 static void cross(QStructBridge *bridge) {
@@ -116,7 +116,7 @@ static void cross(QStructBridge *bridge) {
 }
 
 static void leave(QStructBridge *bridge) {
-  clock_t CPU_time = clock();
+  clock_t CPU_time = clock(); //Tiempo de ejecución del Hilo
   pthread_mutex_lock(&bridge->mutex);
   bridge->cars--;
   pthread_cond_signal(&bridge->empty);
@@ -133,7 +133,6 @@ static void drive(QStructBridge *bridge, int direction) {
 }
 
 static void* east(void *data) {
-
   drive((QStructBridge *) data, BRIDGE_DIRECTION_EAST);
   return NULL;
 }
@@ -152,14 +151,14 @@ static int runThread(int carsOE, int carsEO) {
   int cEO = carsEO;
   int semaforo;
   
-  if((semaforo=semget(IPC_PRIVATE,1,IPC_CREAT | 0700))<0) {
+  if((semaforo=semget(IPC_PRIVATE,1,IPC_CREAT | 0700)) < 0) {
     perror(NULL);
     error("Semaforo: semget");
   }
     
   initSem(semaforo, 0, 1);
     
-  switch (fork()) {
+  switch (fork()) { //Hace el System Call del Switch
     case -1:
     error("Error en el fork"); 
          
@@ -178,11 +177,11 @@ static int runThread(int carsOE, int carsEO) {
         i++;
       }
     }
-    sleep(semaphoreTime);
+    sleep(semaphoreTime); //Tiempo de duracion de la Luz verde
     exit(0);
  
     default: /* CARROS ENTRAN DE ESTE - SALEN DE OESTE */
-    doWait(semaforo,0);
+    doWait(semaforo,0); //Pone el rojo del otro semaforo
     puts("Semaforo -> ENTRAN DE ESTE - SALEN DE OESTE");
     while (i < carsEO) {
       if(cEO > 0) {            
@@ -195,7 +194,7 @@ static int runThread(int carsOE, int carsEO) {
         i++;
       }
     }
-    sleep(semaphoreTime);
+    sleep(semaphoreTime); //Tiempo de duracion de la Luz verde
     doSignal(semaforo,0);   
   }      
   sleep(10);
@@ -239,12 +238,12 @@ void loadArchivo() {
   }
 
   fclose(ptr_file);
-  longbridge = 8;
-  arrivetime = 6;
-  traveltime = 9;
-  semaphoreTime = 12;
-  carsOE = 8;
-  carsEO = 8;
+  carsOE = variables[0];
+  carsEO = variables[1];
+  longbridge = variables[2];
+  arrivetime = variables[3];
+  traveltime = variables[4];
+  semaphoreTime = variables[5];
 }
 
 int main(void) {

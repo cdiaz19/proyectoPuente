@@ -116,7 +116,7 @@ static int runThread(int carsOE, int carsEO) {
       cEO--;
       i++;
     }
-    if(random == 1 && cOE > 0) {            
+    if(random == 1 && cOE > 0) {
       if (pthread_create(&thread[i], NULL,
                 east, &shared_bridgeo)) {
         fprintf(stderr, "Error al crear hilo\n");
@@ -164,12 +164,12 @@ void loadArchivo() {
   }
 
   fclose(ptr_file);
-  longbridge = variables[0];
-  arrivetime = variables[1];
-  traveltime = variables[2];
-  semaphore = variables[3];
-  carsOE = variables[4];
-  carsEO = variables[5];
+  carsOE = variables[0];
+  carsEO = variables[1];
+  longbridge = variables[2];
+  arrivetime = variables[3];
+  traveltime = variables[4];
+  semaphoreTime = variables[5];
 }
 
 int main(void) {
