@@ -1,4 +1,8 @@
-# Proyecto Sistemas Operativos - Problema del Puente Estrecho
+# Proyectos Sistemas Operativos
+
+### Proyectos
+
+* Proyecto0 - Problema del Puente Estrecho
 
 ### Tech
 
