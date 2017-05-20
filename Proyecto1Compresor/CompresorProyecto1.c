@@ -11,45 +11,57 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "ListaCompresorProyecto1.h"
 
-/* Estructuras */
-typedef struct StructLetter {
-  char value;
-  int frequency;
-} StructLetter;
-
-StructLetter arreglo2[100];
-int a = 0;
+/* Variables Globales */
+Lista lista = NULL;
 int x = 0;
 int y = 0;
 
-/* Metodos */
+/* Metodos de CompresorProyecto1 */
+void createLetterArray(char array[]);
+void readFile();
 
-/* Crea un vector con objetos Letter (value, frequency) */
+/*Desarrollo de metodos de lista*/
+
 void createLetterArray(char array[]) {
   char flag = array[0];
+  pNodo nodo = lista;
+  int contador = 1;
 
   while(x < strlen(array)) {
-    int contador = 0;
 
-    for (int i = 0; i < strlen(arreglo2); i++) {
-      if(flag == arreglo2[i].value) {
-        contador++;
-      }
-    }
-
-    if(contador != 1) {
+    if(ListaVacia(lista)) {
       int cont = 0;
       for(int j = 0; j < strlen(array); j++) {
         if(array[j] == flag) {
         cont++;
         }
       }
-      StructLetter QEst;
-      QEst.value = flag;
-      QEst.frequency = cont;
-      arreglo2[a] = QEst;
-      a++;
+      Insertar(&lista, flag, cont);
+    } else {
+      pNodo nodo = lista;
+      int contador = 0;
+
+      /* Valida si la letra ya se encuentra en la lista */
+      while(nodo) {
+        if(flag == nodo->letter.value) {
+          contador++;
+        }
+        nodo = nodo->siguiente;
+      }
+
+      if(contador != 1) {
+      int cont = 0;
+      /* Saca la Frecuencia del Valor en el vector */
+      for(int j = 0; j < strlen(array); j++) {
+        if(array[j] == flag) {
+        cont++;
+        }
+      }
+      /* Inserta en la lista */
+      Insertar(&lista, flag, cont);
+      }
     }
     y++;
     flag = array[y];
@@ -57,22 +69,6 @@ void createLetterArray(char array[]) {
   }
 }
 
-/* Elimina los espacios en blanco de la frase */
-void copyArrays(char array[]) {
-  char letters[100];
-
-  int i,j;
-
-  for (i=j=0; array[i] != '\0'; i++) {
-    if (!isspace(array[i]))
-      letters[j++] = array[i];
-  }
-  letters[j] = '\0';
-  printf("\n");
-  createLetterArray(letters);
-}
-
-/* Lee la frase del archivo */
 void readFile() {
   FILE *readText = fopen("texto", "r");
   char phrase[100];
@@ -87,19 +83,13 @@ void readFile() {
   }
 
   fclose(readText);
-  copyArrays(phrase);
+  createLetterArray(phrase);
 }
 
 int main () {
   readFile();
-  printf("----\n"); 
-  FILE *create = fopen ("tablaHuffman", "wb");
-  for(int i = 0; i < strlen(arreglo2); i++) {
-    fprintf(create,"Letra: %c - Frecuencia: %i. \n",arreglo2[i].value, arreglo2[i].frequency);
-  }
+  printf("\n ----\n"); 
 
-  /* Falta crear archivo */
-
-  fclose(create);
+  MostrarLista(lista);
   return 0;
 }
