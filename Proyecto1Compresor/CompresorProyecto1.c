@@ -89,7 +89,7 @@ void readFile() {
 int main () {
   readFile();
   printf("\n ----\n"); 
-
   MostrarLista(lista);
+
   return 0;
 }
