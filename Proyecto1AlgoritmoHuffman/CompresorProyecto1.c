@@ -38,12 +38,19 @@ struct MinHeap {
   struct HufmannTree **array;  // Array del Nodo Arbol
 };
 
+typedef struct Tabla{
+   char letra;
+   int codes[1000];
+} tablaCodigo;
+
 StructLetter setData(char value, int frequency) {
   StructLetter data;
   data.value = value;
   data.frequency = frequency;
   return data;
 }
+
+
 
 /* Variables Globales */
 
@@ -58,6 +65,7 @@ Lista lista = NULL;
 void Insertar(Lista *lista,  char value, int frequency);
 int ListaVacia(Lista lista);
 void MostrarLista(Lista lista);
+void ordenaAlfabeticamente(Lista *lista, char letra);/*ordenar alfabeticamente la lista*/
 int tamLista(Lista lista);
 struct HufmannTree* newNode(char data, unsigned freq);
 struct MinHeap* createMinHeap(unsigned capacity);
@@ -72,7 +80,33 @@ void printCodes(struct HufmannTree* root, int arr[], int top);
 void createLetterArray(char array[]);
 void readFile();
 
+void setValuesTable(char data, int code[], int n);
+void showTable(tablaCodigo c1);
+
 /*Desarrollo de metodos de lista*/
+
+
+void setValuesTable(char data, int code[], int n){
+ tablaCodigo example;
+//int codes[n];
+ example.letra=data;
+
+ for (int i =0;i<n;i++){
+    example.codes[i]=code[i];
+
+ }
+}
+void showTable(tablaCodigo c1){
+
+printf("Letra: %c ",c1.letra);
+printf("\n-------\n");
+for (int i=0;i<1000;i++){
+printf("posicion[%d] == %d \n", i, c1.codes[i]);
+
+}
+printf("\n-------\n");
+
+}
 
 void Insertar(Lista *lista,  char value, int frequency) {
   pNodo nuevo, anterior;
@@ -245,6 +279,7 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   // Asigna y retorna 0 en la hoja izquierda
   if (root->left) {
     arr[top] = 0;
+    setValuesTable(root->left->letter->value, arr,1000);
     printCodes(root->left, arr, top + 1);
   }
  
