@@ -82,9 +82,9 @@ void HuffmanCodes(Lista lista, int size);
 void printCodes(struct HufmannTree* root, int arr[], int top);
 void createLetterArray(char array[]);
 void readFile();
-void setValuesTable(char data, int code[], int n);
-void showTable(TableCode* c1,int n);
-void ShowArrayTables(TableCode* Data[],int n);
+void setValuesTable(char data, int code[]);
+void showTable(TableCode* c1);
+void ShowArrayTables(TableCode* Data[]);
 
 /*Desarrollo de metodos de lista*/
 
@@ -363,13 +363,13 @@ void readFile() {
   createLetterArray(phrase);
 }
 /*Metodo que se encarga de crear un Table code */
-TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/
+TableCode* newTAbleCode(char letter, int code[]){ /*n tamano del vector*/
     
      TableCode* TC =malloc(sizeof(TableCode));
-    int TAM=n;
+   // int TAM=n;
      TC->letra=letter;
      
-     for (int i=0;i<n;i++){ 
+     for (int i=0;i<sizeof(int);i++){ 
        TC->codes[i]=code[i];
 
      }
@@ -379,11 +379,11 @@ TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/
 }
 
 
-void showTable(TableCode* c1,int n){
+void showTable(TableCode* c1){
 
 printf("Letra: %c ",c1->letra);
 printf("\n-------\n");
-for (int i=0;i<n;i++){
+for (int i=0;i<strlen(c1->codes);i++){
 printf("posicion[%d] == %d \n", i, c1->codes[i]);
 
 }
@@ -399,13 +399,13 @@ printf("\n-------\n");
 }*/
 
 
-void ShowArrayTables(TableCode* Data[],int n){
-   for(int i=0;i<n;i++){
+void ShowArrayTables(TableCode* Data[]){
+   for(int i=0;i<strlen(Data);i++){
    printf("Tabla: %d \n",i);
    
    printf("Letra: %c \n",Data[i]->letra);    
     
-   for (int j=0;j<5;j++){
+   for (int j=0;j<sizeof(int);j++){
 printf("posicion[%d] == %d \n", i, Data[i]->codes[j]);
 
 }
@@ -425,21 +425,21 @@ int main() {
 
 int tam=5;
  int prueba[tam];
- for(int i =0;i<5;i++){
+ for(int i =0;i<6;i++){
     prueba[i]=i;
 
  } 
-TableCode* t1= newTAbleCode('A',prueba,tam);
-TableCode* t2= newTAbleCode('B',prueba,tam);
-TableCode* t3= newTAbleCode('C',prueba,tam);
-TableCode* t4= newTAbleCode('D',prueba,tam);
-TableCode* t5= newTAbleCode('E',prueba,tam);
-TableCode* t6= newTAbleCode('F',prueba,tam);
-TableCode* t7= newTAbleCode('G',prueba,tam);
-TableCode* t8= newTAbleCode('H',prueba,tam);
-TableCode* t9= newTAbleCode('I',prueba,tam);
-TableCode* t10= newTAbleCode('J',prueba,tam);
-TableCode* t11= newTAbleCode('H',prueba,tam);
+TableCode* t1= newTAbleCode('A',prueba);
+TableCode* t2= newTAbleCode('B',prueba);
+TableCode* t3= newTAbleCode('C',prueba);
+TableCode* t4= newTAbleCode('D',prueba);
+TableCode* t5= newTAbleCode('E',prueba);
+TableCode* t6= newTAbleCode('F',prueba);
+TableCode* t7= newTAbleCode('G',prueba);
+TableCode* t8= newTAbleCode('H',prueba);
+TableCode* t9= newTAbleCode('I',prueba);
+TableCode* t10= newTAbleCode('J',prueba);
+TableCode* t11= newTAbleCode('H',prueba);
 
 TableCode* array[11];
 array[0]=t1 ;
@@ -454,7 +454,7 @@ array[8]=t9 ;
 array[9]=t10 ;
 array[10]=t11 ;
 
-ShowArrayTables(array,11);
+ShowArrayTables(array);
 
 
 //showTable(t1,tam);
