@@ -85,22 +85,21 @@ StructLetter setData(char value, int frequency) {
 }
 
 struct HufmannTree* newNode(char data, unsigned freq) {
-    struct HufmannTree* temp =
-          (struct HufmannTree*) malloc(sizeof(struct HufmannTree));
-    temp->left = temp->right = NULL;
-    temp->data = data;
-    temp->freq = freq;
-    return temp;
+  struct HufmannTree* temp =
+        (struct HufmannTree*) malloc(sizeof(struct HufmannTree));
+  temp->left = temp->right = NULL;
+  temp->data = data;
+  temp->freq = freq;
+  return temp;
 }
 
 struct MinHeap* createMinHeap(unsigned capacity) {
-    struct MinHeap* minHeap =
-         (struct MinHeap*) malloc(sizeof(struct MinHeap));
-    minHeap->size = 0;  // current size is 0
-    minHeap->capacity = capacity;
-    minHeap->array =
-     (struct HufmannTree**)malloc(minHeap->capacity * sizeof(struct HufmannTree*));
-    return minHeap;
+  struct MinHeap* minHeap =
+      (struct MinHeap*) malloc(sizeof(struct MinHeap));
+  minHeap->size = 0;  // current size is 0
+  minHeap->capacity = capacity;
+  minHeap->array = (struct HufmannTree**)malloc(minHeap->capacity * sizeof(struct HufmannTree*));
+  return minHeap;
 }
 
 struct HufmannTree* extractMin(struct MinHeap* minHeap) {
