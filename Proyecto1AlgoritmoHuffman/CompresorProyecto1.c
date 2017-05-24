@@ -7,7 +7,6 @@
  * 
  */
 
-// C program for Huffman Coding
 #include <stdio.h> 
 #include <stdlib.h>
 #include <string.h>
@@ -261,11 +260,20 @@ TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/
 }
 
 void showTable(TableCode* c1, int n) {
+  FILE *fp = fopen ( "tablaHuffman", "a" );
+
   printf("Letra: %c ",c1->letra);
   for (int i=0;i<n;i++){
     printf("%d", c1->codes[i]);
   }
   printf("\n-------\n");
+
+  fprintf(fp, "%c ", c1->letra);
+  for (int i=0;i<n;i++){
+    fprintf(fp, "%d", c1->codes[i]);
+  }
+  fprintf(fp, "\n");
+  fclose(fp);
 }
  
 void printCodes(struct HufmannTree* root, int arr[], int top) {
@@ -382,7 +390,7 @@ int main() {
   printf("\n-------\n");
   MostrarLista(lista);
   int size = tamLista(lista);
-  printf("\n-------\n");
+  printf("-------\n");
   HuffmanCodes(lista, size);
 
   return 0;
