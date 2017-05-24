@@ -82,19 +82,19 @@ void HuffmanCodes(Lista lista, int size);
 void printCodes(struct HufmannTree* root, int arr[], int top);
 void createLetterArray(char array[]);
 void readFile();
-void setValuesTable(char data, int code[]);
+void setValuesTable(char data, int code[],int n);
 void showTable(TableCode* c1);
 void ShowArrayTables(TableCode* Data[]);
 
 
 /*Metodo que se encarga de crear un Table code */
-TableCode* newTAbleCode(char letter, int code[]){ /*n tamano del vector*/
+TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/
     
      TableCode* TC =malloc(sizeof(TableCode));
-   // int TAM=n;
+    int TAM=n;
      TC->letra=letter;
      
-     for (int i=0;i<sizeof(int);i++){ 
+     for (int i=0;i<TAM;i++){ 
        TC->codes[i]=code[i];
 
      }
@@ -108,7 +108,7 @@ void showTable(TableCode* c1){
 
 printf("Letra: %c ",c1->letra);
 printf("\n-------\n");
-for (int i=0;i<strlen(c1->codes);i++){
+for (int i=0;i<5;i++){
 printf("posicion[%d] == %d \n", i, c1->codes[i]);
 
 }
@@ -328,7 +328,7 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   // Si se trata de un nodo hoja, entonces contiene uno de los 
   // caracteres, imprime el carácter y su código de arr []
   if (isLeaf(root)) {
-    TableCode* t1= newTAbleCode(root->data,arr);
+    TableCode* t1= newTAbleCode(root->data,arr,5);
     showTable(t1);
 
     //printf("%c: ", root->data);
