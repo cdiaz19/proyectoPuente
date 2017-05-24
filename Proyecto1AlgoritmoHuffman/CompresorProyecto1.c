@@ -86,6 +86,62 @@ void setValuesTable(char data, int code[]);
 void showTable(TableCode* c1);
 void ShowArrayTables(TableCode* Data[]);
 
+
+/*Metodo que se encarga de crear un Table code */
+TableCode* newTAbleCode(char letter, int code[]){ /*n tamano del vector*/
+    
+     TableCode* TC =malloc(sizeof(TableCode));
+   // int TAM=n;
+     TC->letra=letter;
+     
+     for (int i=0;i<sizeof(int);i++){ 
+       TC->codes[i]=code[i];
+
+     }
+
+
+   return TC;
+}
+
+
+void showTable(TableCode* c1){
+
+printf("Letra: %c ",c1->letra);
+printf("\n-------\n");
+for (int i=0;i<strlen(c1->codes);i++){
+printf("posicion[%d] == %d \n", i, c1->codes[i]);
+
+}
+printf("\n-------\n");
+
+}
+
+/*ingresar las estrcutras table en el vector */
+/*void setValuesArrayT(){
+
+
+
+}*/
+
+
+void ShowArrayTables(TableCode* Data[]){
+   for(int i=0;i<strlen(Data);i++){
+   printf("Tabla: %d \n",i);
+   
+   printf("Letra: %c \n",Data[i]->letra);    
+    
+   for (int j=0;j<sizeof(int);j++){
+printf("posicion[%d] == %d \n", i, Data[i]->codes[j]);
+
+}
+
+}
+
+
+}
+
+
+
 /*Desarrollo de metodos de lista*/
 
 void Insertar(Lista *lista,  char value, int frequency) {
@@ -272,8 +328,11 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   // Si se trata de un nodo hoja, entonces contiene uno de los 
   // caracteres, imprime el carácter y su código de arr []
   if (isLeaf(root)) {
-    printf("%c: ", root->data);
-    printArr(arr, top);
+    TableCode* t1= newTAbleCode(root->data,arr);
+    showTable(t1);
+
+    //printf("%c: ", root->data);
+    //printArr(arr, top);
   }
 }
 
@@ -362,68 +421,17 @@ void readFile() {
   fclose(readText);
   createLetterArray(phrase);
 }
-/*Metodo que se encarga de crear un Table code */
-TableCode* newTAbleCode(char letter, int code[]){ /*n tamano del vector*/
-    
-     TableCode* TC =malloc(sizeof(TableCode));
-   // int TAM=n;
-     TC->letra=letter;
-     
-     for (int i=0;i<sizeof(int);i++){ 
-       TC->codes[i]=code[i];
 
-     }
-
-
-   return TC;
-}
-
-
-void showTable(TableCode* c1){
-
-printf("Letra: %c ",c1->letra);
-printf("\n-------\n");
-for (int i=0;i<strlen(c1->codes);i++){
-printf("posicion[%d] == %d \n", i, c1->codes[i]);
-
-}
-printf("\n-------\n");
-
-}
-
-/*ingresar las estrcutras table en el vector */
-/*void setValuesArrayT(){
-
-
-
-}*/
-
-
-void ShowArrayTables(TableCode* Data[]){
-   for(int i=0;i<strlen(Data);i++){
-   printf("Tabla: %d \n",i);
-   
-   printf("Letra: %c \n",Data[i]->letra);    
-    
-   for (int j=0;j<sizeof(int);j++){
-printf("posicion[%d] == %d \n", i, Data[i]->codes[j]);
-
-}
-
-}
-
-
-}
 int main() {
- /* readFile();
+  readFile();
   printf("\n-------\n");
   MostrarLista(lista);
   int size = tamLista(lista);
   printf("\n-------\n");
   HuffmanCodes(lista, size);
- */
+ 
 
-int tam=5;
+/*int tam=5;
  int prueba[tam];
  for(int i =0;i<6;i++){
     prueba[i]=i;
@@ -455,7 +463,7 @@ array[9]=t10 ;
 array[10]=t11 ;
 
 ShowArrayTables(array);
-
+*/
 
 //showTable(t1,tam);
 
