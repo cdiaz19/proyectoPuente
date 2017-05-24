@@ -108,7 +108,7 @@ void showTable(TableCode* c1){
 
 printf("Letra: %c ",c1->letra);
 printf("\n-------\n");
-for (int i=0;i<5;i++){
+for (int i=0;i<5;i++){//n cantidad del vector
 printf("posicion[%d] == %d \n", i, c1->codes[i]);
 
 }
