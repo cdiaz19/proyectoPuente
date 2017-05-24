@@ -38,13 +38,44 @@ struct MinHeap {
   struct HufmannTree **array;  // Array del Nodo Arbol
 };
 
- struct Table{
-   char letra;
-   int codes[];
-} ;
+struct Table{
+  char letra;
+  int codes[];
+};
 
+/* Variables Globales */
 
+int x = 0;
+int y = 0;
+typedef tipoNodo *pNodo;
+typedef tipoNodo *Lista;
 typedef struct Table TableCode;
+Lista lista = NULL;
+
+/* Metodos de CompresorProyecto1 */
+
+struct HufmannTree* newNode(char data, unsigned freq);
+struct MinHeap* createMinHeap(unsigned capacity);
+struct HufmannTree* extractMin(struct MinHeap* minHeap);
+struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size);
+
+void Insertar(Lista *lista,  char value, int frequency);
+int ListaVacia(Lista lista);
+void MostrarLista(Lista lista);
+void ordenaAlfabeticamente(Lista *lista, char letra);/*ordenar alfabeticamente la lista*/
+int tamLista(Lista lista);
+void minHeapify(struct MinHeap* minHeap, int idx);
+void insertMinHeap(struct MinHeap* minHeap, struct HufmannTree* minHeapNode);
+void buildMinHeap(struct MinHeap* minHeap);
+void printArr(int arr[], int n);
+void HuffmanCodes(Lista lista, int size);
+void printCodes(struct HufmannTree* root, int arr[], int top);
+void createLetterArray(char array[]);
+void readFile();
+void setValuesTable(char data, int code[],int n);
+void showTable(TableCode* c1, int n);
+
+/*Desarrollo de metodos de lista*/
 
 StructLetter setData(char value, int frequency) {
   StructLetter data;
@@ -53,96 +84,64 @@ StructLetter setData(char value, int frequency) {
   return data;
 }
 
-
-
-/* Variables Globales */
-
-int x = 0;
-int y = 0;
-typedef tipoNodo *pNodo;
-typedef tipoNodo *Lista;
-Lista lista = NULL;
-
-/* Metodos de CompresorProyecto1 */
-
-void Insertar(Lista *lista,  char value, int frequency);
-int ListaVacia(Lista lista);
-void MostrarLista(Lista lista);
-void ordenaAlfabeticamente(Lista *lista, char letra);/*ordenar alfabeticamente la lista*/
-int tamLista(Lista lista);
-struct HufmannTree* newNode(char data, unsigned freq);
-struct MinHeap* createMinHeap(unsigned capacity);
-void minHeapify(struct MinHeap* minHeap, int idx);
-struct HufmannTree* extractMin(struct MinHeap* minHeap);
-void insertMinHeap(struct MinHeap* minHeap, struct HufmannTree* minHeapNode);
-void buildMinHeap(struct MinHeap* minHeap);
-void printArr(int arr[], int n);
-struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size);
-void HuffmanCodes(Lista lista, int size);
-void printCodes(struct HufmannTree* root, int arr[], int top);
-void createLetterArray(char array[]);
-void readFile();
-void setValuesTable(char data, int code[],int n);
-void showTable(TableCode* c1);
-void ShowArrayTables(TableCode* Data[]);
-
-
-/*Metodo que se encarga de crear un Table code */
-TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/
-    
-     TableCode* TC =malloc(sizeof(TableCode));
-    int TAM=n;
-     TC->letra=letter;
-     
-     for (int i=0;i<TAM;i++){ 
-       TC->codes[i]=code[i];
-
-     }
-
-
-   return TC;
+struct HufmannTree* newNode(char data, unsigned freq) {
+    struct HufmannTree* temp =
+          (struct HufmannTree*) malloc(sizeof(struct HufmannTree));
+    temp->left = temp->right = NULL;
+    temp->data = data;
+    temp->freq = freq;
+    return temp;
 }
 
-
-void showTable(TableCode* c1){
-
-printf("Letra: %c ",c1->letra);
-printf("\n-------\n");
-for (int i=0;i<5;i++){
-printf("posicion[%d] == %d \n", i, c1->codes[i]);
-
-}
-printf("\n-------\n");
-
+struct MinHeap* createMinHeap(unsigned capacity) {
+    struct MinHeap* minHeap =
+         (struct MinHeap*) malloc(sizeof(struct MinHeap));
+    minHeap->size = 0;  // current size is 0
+    minHeap->capacity = capacity;
+    minHeap->array =
+     (struct HufmannTree**)malloc(minHeap->capacity * sizeof(struct HufmannTree*));
+    return minHeap;
 }
 
-/*ingresar las estrcutras table en el vector */
-/*void setValuesArrayT(){
-
-
-
-}*/
-
-
-void ShowArrayTables(TableCode* Data[]){
-   for(int i=0;i<strlen(Data);i++){
-   printf("Tabla: %d \n",i);
-   
-   printf("Letra: %c \n",Data[i]->letra);    
-    
-   for (int j=0;j<sizeof(int);j++){
-printf("posicion[%d] == %d \n", i, Data[i]->codes[j]);
-
+struct HufmannTree* extractMin(struct MinHeap* minHeap) {
+  // Extrae el 1 del arreglo de las letras
+  struct HufmannTree* temp = minHeap->array[0];
+  minHeap->array[0] = minHeap->array[minHeap->size - 1];
+  --minHeap->size;
+  minHeapify(minHeap, 0);
+  return temp;
 }
 
+struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size) {
+  // Crea las hojas del arbol y los inserta al arreglo
+  struct MinHeap* minHeap = createMinHeap(size);
+  for (int i = 0; i < size; ++i)
+    minHeap->array[i] = newNode(data[i], freq[i]);
+  minHeap->size = size;
+  buildMinHeap(minHeap);
+  return minHeap;
 }
 
+struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
+  struct HufmannTree *left, *right, *top;
+  // Paso 1: Crear las hojas del arbol, sabiendo la cantidad.
+  struct MinHeap* minHeap = createAndBuildMinHeap(data, freq, size);
+ 
+  while (!isSizeOne(minHeap)) {
+    // Paso 2: Extrae minimo 2 hojas del arbol
+    left = extractMin(minHeap);
+    right = extractMin(minHeap);
 
+    // Paso 3: crea el nodo con la suma de las frecuencias y las asigna a cada lado.
+    top = newNode('$', left->freq + right->freq);
+    top->left = left;
+    top->right = right;
+    insertMinHeap(minHeap, top);
+  }
+ 
+  // Paso 4: El nodo restante es el nodo raíz y el árbol está completo.
+  return extractMin(minHeap);
 }
-
-
-
-/*Desarrollo de metodos de lista*/
 
 void Insertar(Lista *lista,  char value, int frequency) {
   pNodo nuevo, anterior;
@@ -195,25 +194,6 @@ int tamLista(Lista lista) {
   return size;
 }
 
-struct HufmannTree* newNode(char data, unsigned freq) {
-    struct HufmannTree* temp =
-          (struct HufmannTree*) malloc(sizeof(struct HufmannTree));
-    temp->left = temp->right = NULL;
-    temp->data = data;
-    temp->freq = freq;
-    return temp;
-}
-
-struct MinHeap* createMinHeap(unsigned capacity) {
-    struct MinHeap* minHeap =
-         (struct MinHeap*) malloc(sizeof(struct MinHeap));
-    minHeap->size = 0;  // current size is 0
-    minHeap->capacity = capacity;
-    minHeap->array =
-     (struct HufmannTree**)malloc(minHeap->capacity * sizeof(struct HufmannTree*));
-    return minHeap;
-}
-
 void swapMinHeapNode(struct HufmannTree** a, struct HufmannTree** b) {
     struct HufmannTree* t = *a;
     *a = *b;
@@ -242,15 +222,6 @@ void minHeapify(struct MinHeap* minHeap, int idx) {
 
 int isSizeOne(struct MinHeap* minHeap) { return (minHeap->size == 1); }
 
-struct HufmannTree* extractMin(struct MinHeap* minHeap) {
-  // Extrae el 1 del arreglo de las letras
-  struct HufmannTree* temp = minHeap->array[0];
-  minHeap->array[0] = minHeap->array[minHeap->size - 1];
-  --minHeap->size;
-  minHeapify(minHeap, 0);
-  return temp;
-}
-
 void insertMinHeap(struct MinHeap* minHeap, struct HufmannTree* minHeapNode) {
   //Inserta el nodo en el arbol
   ++minHeap->size;
@@ -271,43 +242,31 @@ void buildMinHeap(struct MinHeap* minHeap) {
 }
 
 void printArr(int arr[], int n) {
-    int i;
-    for (i = 0; i < n; ++i)
-        printf("%d", arr[i]);
-    printf("\n");
+  int i;
+  for (i = 0; i < n; ++i)
+    printf("%d", arr[i]);
+  printf("\n");
 }
 
 int isLeaf(struct HufmannTree* root) { return !(root->left) && !(root->right); }
 
-struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size) {
-  // Crea las hojas del arbol y los inserta al arreglo
-  struct MinHeap* minHeap = createMinHeap(size);
-  for (int i = 0; i < size; ++i)
-    minHeap->array[i] = newNode(data[i], freq[i]);
-  minHeap->size = size;
-  buildMinHeap(minHeap);
-  return minHeap;
+/*Metodo que se encarga de crear un Table code */
+TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/  
+  TableCode* TC;
+  int TAM=n;
+  TC->letra=letter;
+  for (int i=0;i<TAM;i++){ 
+    TC->codes[i]=code[i];
+  }
+  return TC;
 }
 
-struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
-  struct HufmannTree *left, *right, *top;
-  // Paso 1: Crear las hojas del arbol, sabiendo la cantidad.
-  struct MinHeap* minHeap = createAndBuildMinHeap(data, freq, size);
- 
-  while (!isSizeOne(minHeap)) {
-    // Paso 2: Extrae minimo 2 hojas del arbol
-    left = extractMin(minHeap);
-    right = extractMin(minHeap);
-
-    // Paso 3: crea el nodo con la suma de las frecuencias y las asigna a cada lado.
-    top = newNode('$', left->freq + right->freq);
-    top->left = left;
-    top->right = right;
-    insertMinHeap(minHeap, top);
+void showTable(TableCode* c1, int n) {
+  printf("Letra: %c ",c1->letra);
+  for (int i=0;i<n;i++){
+    printf("%d", c1->codes[i]);
   }
- 
-  // Paso 4: El nodo restante es el nodo raíz y el árbol está completo.
-  return extractMin(minHeap);
+  printf("\n-------\n");
 }
  
 void printCodes(struct HufmannTree* root, int arr[], int top) {
@@ -328,11 +287,8 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   // Si se trata de un nodo hoja, entonces contiene uno de los 
   // caracteres, imprime el carácter y su código de arr []
   if (isLeaf(root)) {
-    TableCode* t1= newTAbleCode(root->data,arr,5);
-    showTable(t1);
-
-    //printf("%c: ", root->data);
-    //printArr(arr, top);
+    TableCode* t1= newTAbleCode(root->data, arr, top);
+    showTable(t1, top);
   }
 }
 
@@ -429,43 +385,6 @@ int main() {
   int size = tamLista(lista);
   printf("\n-------\n");
   HuffmanCodes(lista, size);
- 
-
-/*int tam=5;
- int prueba[tam];
- for(int i =0;i<6;i++){
-    prueba[i]=i;
-
- } 
-TableCode* t1= newTAbleCode('A',prueba);
-TableCode* t2= newTAbleCode('B',prueba);
-TableCode* t3= newTAbleCode('C',prueba);
-TableCode* t4= newTAbleCode('D',prueba);
-TableCode* t5= newTAbleCode('E',prueba);
-TableCode* t6= newTAbleCode('F',prueba);
-TableCode* t7= newTAbleCode('G',prueba);
-TableCode* t8= newTAbleCode('H',prueba);
-TableCode* t9= newTAbleCode('I',prueba);
-TableCode* t10= newTAbleCode('J',prueba);
-TableCode* t11= newTAbleCode('H',prueba);
-
-TableCode* array[11];
-array[0]=t1 ;
-array[1]=t2 ;
-array[2]=t3 ;
-array[3]=t4 ;
-array[4]=t5 ;
-array[5]=t6 ;
-array[6]=t7 ;
-array[7]=t8 ;
-array[8]=t9 ;
-array[9]=t10 ;
-array[10]=t11 ;
-
-ShowArrayTables(array);
-*/
-
-//showTable(t1,tam);
 
   return 0;
 }
