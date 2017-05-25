@@ -50,6 +50,9 @@ typedef tipoNodo *pNodo;
 typedef tipoNodo *Lista;
 typedef struct Table TableCode;
 Lista lista = NULL;
+TableCode* Codes[];
+
+
 
 /* Metodos de CompresorProyecto1 */
 
@@ -73,6 +76,8 @@ void createLetterArray(char array[]);
 void readFile();
 void setValuesTable(char data, int code[],int n);
 void showTable(TableCode* c1, int n);
+void EnterTable(TableCode *c1);
+void ShowTables(TableCode*c1[],int x);
 
 /*Desarrollo de metodos de lista*/
 
@@ -367,7 +372,20 @@ void createLetterArray(char array[]) {
     x++;
   }
 }
+void EnterTable(TableCode *c1){
 
+   Codes[strlen(Codes)]=c1;
+
+}
+
+void ShowTables(TableCode*c1[],int n ){
+ 
+
+  for (int i=0;i<n;i++){
+     showTable(c1[i],5);
+  }
+
+}
 void readFile() {
   FILE *readText = fopen("texto", "r");
   char phrase[100];
@@ -392,6 +410,8 @@ int main() {
   int size = tamLista(lista);
   printf("-------\n");
   HuffmanCodes(lista, size);
+
+
 
   return 0;
 }
