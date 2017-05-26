@@ -39,6 +39,7 @@ struct MinHeap {
 
 struct Table{
   char letra;
+  int bites;
   int codes[];
 };
 
@@ -47,6 +48,7 @@ struct Table{
 int x = 0;
 int y = 0;
 int a = 0;
+int tamCodesArray = 0;
 typedef tipoNodo *pNodo;
 typedef tipoNodo *Lista;
 typedef struct Table TableCode;
@@ -76,9 +78,7 @@ void printCodes(struct HufmannTree* root, int arr[], int top);
 void createLetterArray(char array[]);
 void readFile();
 void setValuesTable(char data, int code[],int n);
-void showTable(TableCode* c1, int n);
-void EnterTable(TableCode *c1);
-void ShowTables(TableCode*c1[],int x);
+void showTable(TableCode* c1);
 
 /*Desarrollo de metodos de lista*/
 
@@ -199,9 +199,9 @@ int tamLista(Lista lista) {
 }
 
 void swapMinHeapNode(struct HufmannTree** a, struct HufmannTree** b) {
-    struct HufmannTree* t = *a;
-    *a = *b;
-    *b = t;
+  struct HufmannTree* t = *a;
+  *a = *b;
+  *b = t;
 }
 
 void minHeapify(struct MinHeap* minHeap, int idx) {
@@ -255,71 +255,54 @@ void printArr(int arr[], int n) {
 int isLeaf(struct HufmannTree* root) { return !(root->left) && !(root->right); }
 
 /*Metodo que se encarga de crear un Table code */
-TableCode* newTAbleCode(char letter, int code[],int n){ /*n tamano del vector*/  
+TableCode* newTableCode(char letter, int code[],int n){ /*n tamano del vector*/  
   TableCode* TC;
-  int TAM=n;
   TC->letra=letter;
-  for (int i=0;i<TAM;i++){ 
+  TC->bites=n;
+  for (int i=0;i<n;i++){ 
     TC->codes[i]=code[i];
   }
   return TC;
 }
 
-void create(char array[], TableCode* c1, int n) {
-  /*AQUI EN VEZ DE HACER ESTO, DEBERIA IR COMO CREAR EL VECTOR DE TABLES.*/
-
-  /*lUEGO DE ESO SE PODRIA HACER UN METODO QUE VAYA CODIFICANDO SEGUN LA LETRA QUE VAYA SALIENDO*/
+void create(char array[], TableCode* codes[]) {
   char flag = array[0];
   int h = 0;
-
   FILE *compress = fopen ( "compressHuffman", "a" );
+  
   while(h < strlen(array)) {
-    if(flag == c1->letra) {
-      for (int i=0;i<n;i++){
-        fprintf(compress, "%d", c1->codes[i]);
+    for (int i = 0; i < tamCodesArray; ++i) {
+      if(flag == codes[i]->letra){
+        for (int j = 0; j < Codes[i]->bites; j++) {
+          fprintf(compress, "%i", Codes[i]->codes[j]);
+          printf("%i", Codes[i]->codes[j]);
+        }
       }
-    fprintf(compress, " ");
     }
-  h++;
-  flag = array[h];
+    fprintf(compress, " ");
+    h++;
+    flag = array[h];
   }
+
   fclose(compress);
 }
 
-void readCompress() {
-  FILE *readCompressText = fopen("compressHuffman", "r");
-
-  if(!readCompressText){
-    printf("El archivo no existe..");
-  }
-  
-  while (feof(readCompressText) == 0) {
-    fgets(compressPhrase,100,readCompressText);
-    printf("%s",compressPhrase);
-  }
-
-  fclose(readCompressText);
-}
-
-void showTable(TableCode* c1, int n) {
+void showTable(TableCode* c1) {
   FILE *fp = fopen ( "tableHuffman", "a" );
 
   printf("Letra: %c ",c1->letra);
   printf("Codigo: ");
-  for (int i=0;i<n;i++){
+  for (int i=0;i<c1->bites;i++){
     printf("%d", c1->codes[i]);
   }
   printf("\n");
 
   fprintf(fp, "%c ", c1->letra);
-  for (int i=0;i<n;i++){
+  for (int i=0;i<c1->bites;i++){
     fprintf(fp, "%d", c1->codes[i]);
   }
   fprintf(fp, "\n");
   fclose(fp);
-
-  /*Aqui podria mandar la letra y N es el tamano del array*/
-  create(phrase, c1, n);
 }
  
 void printCodes(struct HufmannTree* root, int arr[], int top) {
@@ -340,10 +323,11 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   // Si se trata de un nodo hoja, entonces contiene uno de los 
   // caracteres, imprime el carácter y su código de arr []
   if (isLeaf(root)) {
-    TableCode* t1= newTAbleCode(root->data, arr, top);
+    TableCode* t1= newTableCode(root->data, arr, top);
     Codes[a] = t1;
+    tamCodesArray++;
     a++;
-    showTable(t1, top);
+    showTable(t1);
   }
 }
 
@@ -425,7 +409,7 @@ void readFile() {
   
   while (feof(readText) == 0) {
     fgets(phrase,100,readText);
-    printf("Frase en el Archivo: %s",phrase);
+    printf("Frase en el Archivo: %s\n",phrase);
   }
 
   fclose(readText);
@@ -434,14 +418,16 @@ void readFile() {
 
 int main() {
   readFile();
+
   printf("\n<--Lista de Letras y Frecuencias-->\n");
   MostrarLista(lista);
-  int size = tamLista(lista);
+  
   printf("<--Codigo de Hufmann-->\n");
+  int size = tamLista(lista);
   HuffmanCodes(lista, size);
 
   printf("\n<--Codificado-->\n");
-  readCompress();
+  create(phrase,Codes);
 
   return 0;
 }
