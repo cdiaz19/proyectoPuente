@@ -16,9 +16,8 @@
 #define MAX_TREE_HT 100
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
- 
-/* Estructuras */
 
+/* Estructuras */
 typedef struct StructLetter {
   char value;
   int frequency;
@@ -28,6 +27,12 @@ typedef struct _nodo{
   StructLetter letter;
   struct _nodo *siguiente;
 } tipoNodo;
+
+typedef struct StructListaHilos {
+  struct tipoNodo *list;
+  char value;
+  int frequency;
+} StructListaHilos;
 
 struct HufmannTree {
   char data;
@@ -51,14 +56,15 @@ struct Table{
 
 int x = 0;
 int y = 0;
+int g = 0;
 int a = 0;
 int tamTree = 0;
-clock_t start1, start2, start3, CPU_time, Compress_time;
+clock_t fase1, fase2, fase3, fase4;
 int tamCodesArray = 0;
 typedef tipoNodo *pNodo;
 typedef tipoNodo *Lista;
-typedef struct Table TableCode;
 Lista lista = NULL;
+typedef struct Table TableCode;
 TableCode* Codes[100];
 char phrase[100];
 char compressPhrase[1000];
@@ -71,6 +77,7 @@ struct HufmannTree* extractMin(struct MinHeap* minHeap);
 struct MinHeap* createAndBuildMinHeap(char data[], int freq[], int size);
 
 void Insertar(Lista *lista,  char value, int frequency);
+void InsertarHilos(StructListaHilos *letters);
 int ListaVacia(Lista lista);
 void MostrarLista(Lista lista);
 void ordenaAlfabeticamente(Lista *lista, char letra);/*ordenar alfabeticamente la lista*/
@@ -153,10 +160,27 @@ struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
   // Paso 4: El nodo restante es el nodo raíz y el árbol está completo.
   return extractMin(minHeap);
 }
+/*
+void InsertarHilos(StructListaHilos *letters) { //Lista *lista, char value, int frequency) {
+  pNodo nuevo, anterior;
+ 
+  nuevo = (pNodo)malloc(sizeof(tipoNodo));
+  nuevo->letter = setData(letters->value, letters->frequency);
+
+
+  if(ListaVacia(letters->list) || (letters->list)->letter.frequency > letters->frequency) {
+    nuevo->siguiente = letters->list; 
+    letters->list = nuevo;
+  } else {
+    anterior = letters->list;
+    while(anterior->siguiente && anterior->siguiente->letter.frequency <= letters->frequency) 
+      anterior = anterior->siguiente;
+   nuevo->siguiente = anterior->siguiente;
+    anterior->siguiente = nuevo;
+  }
+}*/
 
 void Insertar(Lista *lista,  char value, int frequency) {
-  start1 = clock();
-
   pNodo nuevo, anterior;
  
   /* Crear un nodo nuevo */
@@ -185,7 +209,6 @@ void Insertar(Lista *lista,  char value, int frequency) {
 int ListaVacia(Lista lista) { return (lista == NULL); }
 
 void MostrarLista(Lista lista) {
-  start2 = clock();
   pNodo nodo = lista; 
 
   if(ListaVacia(lista)) printf("Lista vacía\n");
@@ -196,7 +219,6 @@ void MostrarLista(Lista lista) {
     }
     printf("\n");
   }
-  printf("Tiempo transcurrido en Fase1: %f \n\n", ((double)clock() - (start2+start3)) / CLOCKS_PER_SEC);
 }
 
 int tamLista(Lista lista) {
@@ -277,7 +299,7 @@ TableCode* newTableCode(char letter, int code[],int n){ /*n tamano del vector*/
 }
 
 void createCompress(char array[], TableCode* codes[]) {
-  Compress_time = clock();
+  fase4 = clock();
   char flag = array[0];
   int h = 0;
   FILE *compress = fopen ( "Archivo.txt.edy", "a" );
@@ -297,7 +319,7 @@ void createCompress(char array[], TableCode* codes[]) {
   }
 
   fclose(compress);
-  printf("\n\nTiempo transcurrido en Fase4: %f \n", ((double)clock() - (Compress_time) / CLOCKS_PER_SEC));
+  printf("\n\nTiempo transcurrido en Fase4: %f \n", ((double)clock() - (fase4) / CLOCKS_PER_SEC));
 
 }
 
@@ -320,7 +342,7 @@ void showTable(TableCode* c1) {
 }
  
 void printCodes(struct HufmannTree* root, int arr[], int top) {
-  CPU_time = clock();
+  fase3 = clock();
   // Imprime el codigo de huffman
   // Asigna y retorna 0 en la hoja izquierda
   if (root->left) {
@@ -372,12 +394,11 @@ void HuffmanCodes(Lista lista, int size) {
 }
 
 void createLetterArray(char array[], int thread) {
-  start1 = clock();
+  fase1 = clock();
   char flag = array[0];
   pNodo nodo = lista;
   int contador = 1;
-  int g = 0;
-  //pthread_t threadA;
+  pthread_t threadA[thread];
 
   while(x < strlen(array)) {
 
@@ -388,7 +409,15 @@ void createLetterArray(char array[], int thread) {
         cont++;
         }
       }
+      StructListaHilos letters;
+      pthread_t hilo;
+      letters.list = &lista;
+      letters.value = flag;
+      letters.frequency = cont;
+\
+      //threadA[g] = pthread_create( &hilo, NULL, (void*) InsertarHilos, (void*) &letters );
       Insertar(&lista, flag, cont);
+      g++;
     } else {
       pNodo nodo = lista;
       int contador = 0;
@@ -409,7 +438,15 @@ void createLetterArray(char array[], int thread) {
         cont++;
         }
       }
+      StructListaHilos letters;
+      pthread_t hilo;
+      letters.list = &lista;
+      letters.value = flag;
+      letters.frequency = cont;
+
+      //threadA[g] = pthread_create( &hilo, NULL, (void*) InsertarHilos, (void*) &letters );
       Insertar(&lista, flag, cont);
+      g++;
       }
     }
     y++;
@@ -445,16 +482,17 @@ void readFile() {
 }
 
 int main() {
-
   readFile();
 
   printf("\n<--Lista de Letras con Frecuencias-->\n");
   MostrarLista(lista);
+  printf("Hilos usados: %i\n", g);
+  printf("Tiempo transcurrido en Fase1: %f \n\n", ((double)clock() - (fase1)) / CLOCKS_PER_SEC);
   
   printf("<--Codigo de Hufmann-->\n");
   int size = tamLista(lista);
   HuffmanCodes(lista, size);
-  printf("\nCantidad de Hojas: %i\nTiempo transcurrido en Fase2 & Fase3: %f \n", tamTree, ((double)clock() - (CPU_time) / CLOCKS_PER_SEC));
+  printf("\nCantidad de Hojas: %i\nTiempo transcurrido en Fase2 & Fase3: %f \n", tamTree, ((double)clock() - (fase3) / CLOCKS_PER_SEC));
 
   printf("\n<--Codificado-->\n");
   createCompress(phrase,Codes);
