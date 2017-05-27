@@ -7,11 +7,15 @@
  * 
  */
 
-#include <stdio.h> 
+#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
+#include <time.h>
 #define MAX_TREE_HT 100
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
  
 /* Estructuras */
 
@@ -48,6 +52,8 @@ struct Table{
 int x = 0;
 int y = 0;
 int a = 0;
+int tamTree = 0;
+clock_t start1, start2, start3, CPU_time, Compress_time;
 int tamCodesArray = 0;
 typedef tipoNodo *pNodo;
 typedef tipoNodo *Lista;
@@ -75,10 +81,11 @@ void buildMinHeap(struct MinHeap* minHeap);
 void printArr(int arr[], int n);
 void HuffmanCodes(Lista lista, int size);
 void printCodes(struct HufmannTree* root, int arr[], int top);
-void createLetterArray(char array[]);
+void createLetterArray(char array[], int thread);
 void readFile();
 void setValuesTable(char data, int code[],int n);
 void showTable(TableCode* c1);
+void createCompress(char array[], TableCode* codes[]);
 
 /*Desarrollo de metodos de lista*/
 
@@ -148,6 +155,8 @@ struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
 }
 
 void Insertar(Lista *lista,  char value, int frequency) {
+  start1 = clock();
+
   pNodo nuevo, anterior;
  
   /* Crear un nodo nuevo */
@@ -176,6 +185,7 @@ void Insertar(Lista *lista,  char value, int frequency) {
 int ListaVacia(Lista lista) { return (lista == NULL); }
 
 void MostrarLista(Lista lista) {
+  start2 = clock();
   pNodo nodo = lista; 
 
   if(ListaVacia(lista)) printf("Lista vacía\n");
@@ -186,6 +196,7 @@ void MostrarLista(Lista lista) {
     }
     printf("\n");
   }
+  printf("Tiempo transcurrido en Fase1: %f \n\n", ((double)clock() - (start2+start3)) / CLOCKS_PER_SEC);
 }
 
 int tamLista(Lista lista) {
@@ -265,11 +276,12 @@ TableCode* newTableCode(char letter, int code[],int n){ /*n tamano del vector*/
   return TC;
 }
 
-void create(char array[], TableCode* codes[]) {
+void createCompress(char array[], TableCode* codes[]) {
+  Compress_time = clock();
   char flag = array[0];
   int h = 0;
-  FILE *compress = fopen ( "compressHuffman", "a" );
-  
+  FILE *compress = fopen ( "Archivo.txt.edy", "a" );
+
   while(h < strlen(array)) {
     for (int i = 0; i < tamCodesArray; ++i) {
       if(flag == codes[i]->letra){
@@ -285,10 +297,12 @@ void create(char array[], TableCode* codes[]) {
   }
 
   fclose(compress);
+  printf("\n\nTiempo transcurrido en Fase4: %f \n", ((double)clock() - (Compress_time) / CLOCKS_PER_SEC));
+
 }
 
 void showTable(TableCode* c1) {
-  FILE *fp = fopen ( "tableHuffman", "a" );
+  FILE *fp = fopen ( "Archivo.txt.huff", "a" );
 
   printf("Letra: %c ",c1->letra);
   printf("Codigo: ");
@@ -306,11 +320,12 @@ void showTable(TableCode* c1) {
 }
  
 void printCodes(struct HufmannTree* root, int arr[], int top) {
+  CPU_time = clock();
   // Imprime el codigo de huffman
   // Asigna y retorna 0 en la hoja izquierda
   if (root->left) {
     arr[top] = 0;
- 
+    tamTree++;
     printCodes(root->left, arr, top + 1);
   }
  
@@ -325,6 +340,7 @@ void printCodes(struct HufmannTree* root, int arr[], int top) {
   if (isLeaf(root)) {
     TableCode* t1= newTableCode(root->data, arr, top);
     Codes[a] = t1;
+    tamTree++;
     tamCodesArray++;
     a++;
     showTable(t1);
@@ -355,10 +371,13 @@ void HuffmanCodes(Lista lista, int size) {
   printCodes(root, arr, top);
 }
 
-void createLetterArray(char array[]) {
+void createLetterArray(char array[], int thread) {
+  start1 = clock();
   char flag = array[0];
   pNodo nodo = lista;
   int contador = 1;
+  int g = 0;
+  //pthread_t threadA;
 
   while(x < strlen(array)) {
 
@@ -390,7 +409,6 @@ void createLetterArray(char array[]) {
         cont++;
         }
       }
-      /* Inserta en la lista */
       Insertar(&lista, flag, cont);
       }
     }
@@ -401,33 +419,45 @@ void createLetterArray(char array[]) {
 }
 
 void readFile() {
-  FILE *readText = fopen("texto", "r");
 
+  char fileName[20];
+  int numThread;
+
+  printf("Introduzca un Nombre del Archivo: ");
+  scanf("%s", &fileName);
+  printf("Introduzca la Cantidad de Hilos a utilizar: ");
+  scanf("%d", &numThread);
+
+  FILE *readText = fopen(fileName, "r");
   if(!readText){
     printf("El archivo no existe..");
   }
   
   while (feof(readText) == 0) {
-    fgets(phrase,100,readText);
-    printf("Frase en el Archivo: %s\n",phrase);
+    fgets(phrase, 100, readText);
+    printf("Frase en el Archivo: %s\n", phrase);
   }
 
   fclose(readText);
-  createLetterArray(phrase);
+  int thread = numThread/4;
+
+  createLetterArray(phrase, thread);
 }
 
 int main() {
+
   readFile();
 
-  printf("\n<--Lista de Letras y Frecuencias-->\n");
+  printf("\n<--Lista de Letras con Frecuencias-->\n");
   MostrarLista(lista);
   
   printf("<--Codigo de Hufmann-->\n");
   int size = tamLista(lista);
   HuffmanCodes(lista, size);
+  printf("\nCantidad de Hojas: %i\nTiempo transcurrido en Fase2 & Fase3: %f \n", tamTree, ((double)clock() - (CPU_time) / CLOCKS_PER_SEC));
 
   printf("\n<--Codificado-->\n");
-  create(phrase,Codes);
+  createCompress(phrase,Codes);
 
   return 0;
 }
