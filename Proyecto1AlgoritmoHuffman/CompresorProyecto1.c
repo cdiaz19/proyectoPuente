@@ -65,11 +65,11 @@ int tamCodesArray = 0;
 typedef tipoNodo *pNodo;
 typedef tipoNodo *Lista;
 Lista lista = NULL;
-Lista listaHilos = NULL;
 typedef struct Table TableCode;
-TableCode *Codes = (TableCode*) malloc(100 * sizeof(TableCode));
-char phrase = (TableCode*) malloc(100 * sizeof(TableCode));
-char compressPhrase = (TableCode*) malloc(100 * sizeof(TableCode));
+TableCode* Codes[1025];
+char phrase[1025];
+char compress[1025];
+char compressPhrase[1025];
 
 /* Metodos de CompresorProyecto1 */
 
@@ -95,6 +95,8 @@ void readFile();
 void setValuesTable(char data, int code[],int n);
 void showTable(TableCode* c1);
 void createCompress(char array[], TableCode* codes[]);
+void readCompressFile();
+void descompress();
 
 /*Desarrollo de metodos de lista*/
 
@@ -161,6 +163,24 @@ struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
  
   // Paso 4: El nodo restante es el nodo raíz y el árbol está completo.
   return extractMin(minHeap);
+}
+
+void descompress() {
+
+  for (int i = 0; i < strlen(phrase); ++i) {
+    printf("%c", phrase[i] );
+  }
+
+  printf("\n");
+}
+
+void readCompressFile() {
+  FILE *compressFile = fopen("Archivo.txt.edy", "r");
+
+  if(!compressFile) { printf("El archivo no existe..\n"); }
+  while (feof(compressFile) == 0) { fgets(compress, malloc(sizeof(char)), compressFile); }
+
+  fclose(compressFile);
 }
 
 void InsertarHilos(StructLetter *letters) {
@@ -323,10 +343,12 @@ void createCompress(char array[], TableCode* codes[]) {
         }
       }
     }
+    //printf("Codigo de 0 es %i", Codes[0]->codes);
     h++;
     flag = array[h];
   }
-
+  fclose(compress);
+  
   printf("\n\nTiempo transcurrido en Fase4: %f \n", ((double)clock() - (fase4) / CLOCKS_PER_SEC));
 }
 
@@ -340,11 +362,12 @@ void showTable(TableCode* c1) {
   }
   printf("\n");
 
-  fprintf(fp, "Valor: %c ", c1->letra);
-  fprintf(fp, "Codigo ");
+  fprintf(fp, "%c ", c1->letra);
+  fprintf(fp, " ");
   for (int i=0;i<c1->bites;i++){
     fprintf(fp, "%d", c1->codes[i]);
   }
+
   fprintf(fp, "\n");
   fclose(fp);
 }
@@ -488,7 +511,7 @@ void readFile() {
   fclose(readText);
 
   printf ("Tamano del Archivo: %i bytes.\n",size);
-  printf("Cantidad de bytes por Hilos a Utilizar %i\n", cantThread(size, numThread));
+  //printf("Cantidad de bytes por Hilos a Utilizar %i\n", cantThread(size, numThread));
 
   createLetterArray(phrase);
 }
@@ -505,8 +528,12 @@ int main() {
   HuffmanCodes(lista, size);
   printf("\nCantidad de Hojas: %i\nTiempo transcurrido en Fase2 & Fase3: %f \n", (tamTree - 1), ((double)clock() - (fase3) / CLOCKS_PER_SEC));
 
-  printf("\n<--Codificado-->\n");
+  printf("\n<--Compresor-->\n");
   createCompress(phrase,Codes);
+
+  printf("\n<--Descompresor-->\n");
+  readCompressFile();
+  descompress();
 
   return 0;
 }
