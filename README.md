@@ -3,6 +3,7 @@
 ### Proyectos
 
 * Proyecto0 - Problema del Puente Estrecho
+* Proyecto1 - Algoritmo de Hufmann con hilos de ejecucion
 
 ### Tech
 
