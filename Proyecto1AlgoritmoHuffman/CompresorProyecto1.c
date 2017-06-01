@@ -67,9 +67,9 @@ typedef tipoNodo *Lista;
 Lista lista = NULL;
 Lista listaHilos = NULL;
 typedef struct Table TableCode;
-TableCode* Codes[1000000];
-char phrase[1000000];
-char compressPhrase[1000000];
+TableCode *Codes = (TableCode*) malloc(100 * sizeof(TableCode));
+char phrase = (TableCode*) malloc(100 * sizeof(TableCode));
+char compressPhrase = (TableCode*) malloc(100 * sizeof(TableCode));
 
 /* Metodos de CompresorProyecto1 */
 
