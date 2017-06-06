@@ -166,7 +166,7 @@ struct HufmannTree* buildHuffmanTree(char data[], int freq[], int size) {
 }
 
 void descompress() {
-
+  
   for (int i = 0; i < strlen(phrase); ++i) {
     printf("%c", phrase[i] );
   }
