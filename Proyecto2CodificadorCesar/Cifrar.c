@@ -1,111 +1,163 @@
-#include <pthread.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#define BUFSIZE 30
+#include <pthread.h>
+#define BUFFERSIZE 8 // tamano del buffer 
 
 /* Variables globales */
-
-pthread_t thread1,thread2,thread3,thread4;
-static pthread_mutex_t candado;
-static pthread_cond_t producido;
-static pthread_cond_t consumido;
-
-static char buffer[BUFSIZE];
-static char* frase;
-static char* Llave;
-static int entrada=0;
-static int salida=0;
-static int contador=0;
-static int posFrase=0;
-static int posLlave=0;
+pthread_mutex_t candado; //mutex de acceso compartido al buffer
+pthread_cond_t producido; // condicion de llenado del buffer
+pthread_cond_t consumido; // condicion de vaciado del buffer
+char buffer[BUFFERSIZE]; //buffer comun
+int contador; //numero de elementos en el buffer
+int entrada;
+int salida;
+int posFrase;
+int posLlave;
+int producidos;
+int consumidos;
+FILE *file;
+char *llave;
 
 /* Declaracion de Metodos */
 
-void init();
-void getElement();
-void putElement();
-void produce();
-void consume();
+void get_Element(void);
+void put_Element(void);
+void Init();
+int ReadChar(FILE *file);
+void WriteChar(FILE *file);
+int getTamFile(FILE *file);
+void createCesarFile(char dato);
 
 /* Implementacion de Metodos */
 
-void init(){
-  pthread_mutex_init(&candado,NULL);
-  pthread_cond_init(&producido,NULL);
-  pthread_cond_init(&consumido,NULL);
+int ReadChar(FILE *file) {
+  return fgetc(file);
 }
 
-void getElement(){
-  pthread_mutex_lock(&candado); 
-  
-  while(contador==0) {//buffer vacio
-    pthread_cond_wait(&producido,&candado); //esperando
+int getTamFile(FILE *file) {
+  fseek(file, 0, SEEK_END);
+  int aux = ((ftell(file)) - 1);
+  fseek(file, 0, SEEK_SET);
+  return aux;
+}
+
+void Init() {
+  printf("inicializando variables \n");
+  entrada = 0;
+  salida = 0;
+  contador = 0;
+  posFrase = 0;
+  posLlave = 0;
+  consumidos = getTamFile(file);
+  producidos = getTamFile(file);
+
+  pthread_mutex_init(&candado, NULL);
+  pthread_cond_init(&producido, NULL);
+  pthread_cond_init(&consumido, NULL);
+}
+
+void createCesarFile(char dato) {
+  FILE *fp = fopen ( "Archivo.txt.cesar", "a" );
+  fprintf(fp, "%c ", dato);
+  fclose(fp);
+}
+
+void get_Element(void) {
+  while (consumidos > 0) {
+    pthread_mutex_lock(&candado);
+    while (contador == 0) {//buf vacio
+      pthread_cond_wait(&producido, &candado); //esperando
+    }
+    char dato = buffer[salida];
+    salida = (salida + 1) % BUFFERSIZE;
+    contador = contador - 1;
+    consumidos = consumidos > 0 ? (consumidos - 1) : 0;
+    fflush(stdout);
+
+    createCesarFile(dato);
+
+    pthread_cond_signal(&consumido); //señaliza la extraccion de datos
+    //pthread_cond_broadcast(&producido);
+    pthread_mutex_unlock(&candado);
+
+  }
+  pthread_cond_signal(&consumido);
+  pthread_exit(0);
+}
+
+void put_Element(void) {
+  while (producidos > 0) {
+    pthread_mutex_lock(&candado);
+    while (contador == BUFFERSIZE) {//buffer lleno
+      pthread_cond_wait(&consumido, &candado); //esperando 
+    }
+    int val = ReadChar(file);
+    char dato = val - llave[posLlave] == 0 ? val : val - llave[posLlave];
+
+    buffer[entrada] = dato;
+
+    posLlave = (posLlave + 1) % strlen(llave);
+    // posFrase=(posFrase+1); // aqui lo hace pero iterando hasta finalizar el arreglo no todo el archivo
+
+    entrada = (entrada + 1) % BUFFERSIZE;
+    contador = contador + 1;
+    producidos = producidos > 0 ? producidos - 1 : 0;
+
+    pthread_cond_signal(&producido); //señaliza que metio datos
+    //pthread_cond_broadcast(&producido);
+    pthread_mutex_unlock(&candado);
   }
 
-  contador = contador-1;
-  
-  printf("\n");
-  printf("sacando del buffer: %c", buffer[salida]);
-  printf("\n");
-  
-  salida=(salida+1)%BUFSIZE;
-  pthread_cond_signal(&consumido); //señaliza la extraccion de datos
-  pthread_mutex_unlock(&candado);
-  return;
+  pthread_cond_signal(&producido);
+  pthread_exit(0);
 }
 
-void putElement(){
-  pthread_mutex_lock(&candado); 
-  
-  while(contador==BUFSIZE) {//buffer lleno
-	  pthread_cond_wait(&consumido,& candado);//esperando
+int main(int argc, char **argv) {
+
+  file = fopen("texto", "rb");
+  if (!file) {
+    printf("El archivo no existe..");
+  } 
+  else {
+    Init();
+    printf("Inicio del programa \n");
+
+    printf("Digite la llave para el cifrado del archivo: ");
+    llave = (char*) malloc(sizeof (char*));
+    scanf("%[^\n]", llave);
+    fflush(stdin);
+    fflush(stdout);
+
+    int numHilos;
+    printf("Digite el numero de hilos: ");
+    scanf("%i", &numHilos);
+    fflush(stdin);
+    fflush(stdout);
+    pthread_t thread[numHilos];
+
+    printf("Codificando Archivo");
+
+    for (int i = 1; i <= numHilos; i++) {
+      if (i % 2 == 0) {
+        pthread_create(&thread[i], NULL, (void *) &get_Element, NULL);
+      } else {
+        pthread_create(&thread[i], NULL, (void *) &put_Element, NULL);
+      }
+    }
+
+    for (int i = 1; i <= numHilos; i++) {
+      pthread_join(thread[i], NULL);
+    }
+
+    pthread_mutex_destroy(&candado);
+    pthread_cond_destroy(&producido);
+    pthread_cond_destroy(&consumido);
+
+    free(llave);
+    fclose(file);
   }
- 
-  contador=contador+1;
-  buffer[entrada] = frase[posFrase] - Llave[posLlave]==0?frase[posFrase]:frase[posFrase]-Llave[posLlave];
-
-  printf("\n");
-  printf("metiendo al buffer: %c ", buffer[entrada]);
-  printf("\n");
-
-  posLlave=(posLlave+1)%strlen(Llave);
-  posFrase=posFrase+1; // aqui lo hace pero iterando hasta finalizar el arreglo no todo el archivo
-
-  entrada=(entrada+1)%BUFSIZE;
-  pthread_cond_signal(&producido);//señaliza que metio datos
-  pthread_mutex_unlock(&candado);
-  return;
+  printf("\n<=Archivo Codificado=>");
+  return 0;
 }
 
-void produce() {
-  while(posFrase<strlen(frase)-1) {
-    putElement();
-  }
-}
-
-void consume() {
-  while(contador!=0 && strlen(buffer)!=0 && posFrase!=strlen(frase)){
-    getElement();
-  }
-}
-
-int main(int argc,char *argv[]) {
-  frase="solo se que no se nada";
-  Llave=" ";
-
-  init();
-
-  pthread_create (&thread1,NULL,produce,NULL);
-  pthread_create (&thread2,NULL,produce,NULL);
-  pthread_create (&thread3,NULL,consume,NULL);
-  pthread_create (&thread4,NULL,consume,NULL);
-
-
-  pthread_join(thread1,NULL);
-  pthread_join(thread2,NULL);
-  pthread_join(thread3,NULL);
-  pthread_join(thread4,NULL);
-
-  pthread_exit (NULL);
-}
