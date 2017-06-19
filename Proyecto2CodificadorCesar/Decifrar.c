@@ -1,10 +1,20 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+/*
+ *      Proyecto 2 de Sistemas Operativos
+ *      Decifrar.c
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #define BUFFERSIZE 3 // tamano del buffer 
 
 /* Variables globales */
+
 pthread_mutex_t candado; //mutex de acceso compartido al buffer
 pthread_cond_t producido; // condicion de llenado del buffer
 pthread_cond_t consumido; // condicion de vaciado del buffer
@@ -19,23 +29,25 @@ int consumidos;
 FILE *file;
 FILE *cesar;
 char *llave;
+char dato;
+
 
 /* Declaracion de Metodos */
 
-void get_Element(void);
-void put_Element(void);
-void Init();
-int ReadChar(FILE *file);
-void WriteChar(FILE *Cesar, char dato);
+void getElement(void);
+void putElement(void);
+void init();
+int readChar(FILE *file);
+void writeChar(FILE *Cesar, char dato);
 int getTamFile(FILE *file);
 
 /* Implementacion de Metodos */
 
-void WriteChar(FILE *Cesar, char dato) {
+void writeChar(FILE *Cesar, char dato) {
   fprintf(Cesar, "%c", dato);
 }
 
-int ReadChar(FILE *file) {
+int readChar(FILE *file) {
   return fgetc(file);
 }
 
@@ -46,8 +58,8 @@ int getTamFile(FILE *file) {
   return aux;
 }
 
-void Init() {
-  printf("inicializando variables \n");
+void init() {
+  printf("Inicializando Variables \n");
   entrada = 0;
   salida = 0;
   contador = 0;
@@ -60,13 +72,7 @@ void Init() {
   pthread_cond_init(&consumido, NULL);
 }
 
-void createCesarFile(char dato) {
-  FILE *fp = fopen("Archivo.txt.cesar", "a");
-  fprintf(fp, "%c ", dato);
-  fclose(fp);
-}
-
-void get_Element(void) {
+void getElement(void) {
   while (consumidos != 0) {
     pthread_mutex_lock(&candado);
     while (contador == 0) {//buf vacio
@@ -78,26 +84,23 @@ void get_Element(void) {
       contador = contador - 1;
       consumidos = consumidos > 0 ? (consumidos - 1) : 0;
 
-      WriteChar(cesar, dato);
-      //pthread_cond_broadcast(&producido);
-      //fflush(stdout);
-      //   printf("%c",dato);
+      writeChar(cesar, dato);
     }
     pthread_mutex_unlock(&candado);
     pthread_cond_signal(&consumido); //señaliza la extraccion de datos
   }
-
 }
 
-void put_Element(void) {
+void putElement(void) {
   while (!feof(file)) {
     pthread_mutex_lock(&candado);
     while (contador == BUFFERSIZE) {//buffer lleno
       pthread_cond_wait(&consumido, &candado); //esperando 
     }
     if (!feof(file)) {
-      int val = ReadChar(file);
-      char dato = val - llave[posLlave] == 0 ? val : val - llave[posLlave];
+      int val = readChar(file);
+
+      char dato = val == 32 ? ' ' : val + llave[posLlave];
 
       buffer[entrada] = dato;
       posLlave = (posLlave + 1) % strlen(llave);
@@ -105,7 +108,6 @@ void put_Element(void) {
       entrada = (entrada + 1) % BUFFERSIZE;
       contador = contador + 1;
     }
-    //pthread_cond_broadcast(&producido);
     pthread_mutex_unlock(&candado);
     pthread_cond_signal(&producido); //señaliza que metio datos
   }
@@ -113,13 +115,12 @@ void put_Element(void) {
 
 int main(int argc, char **argv) {
 
-  file = fopen("txt", "rb");
+  file = fopen("Archivo.txt.cesar", "rb");
   if (!file) {
     printf("El archivo no existe..");
-  }
-  else {
-    cesar = fopen("Archivo.txt.cesar", "w");
-    Init();
+  } else {
+    cesar = fopen("Archivo.txt.descifrado", "w");
+    init();
     printf("Inicio del programa \n");
 
     printf("Digite la llave para el cifrado del archivo: ");
@@ -133,15 +134,14 @@ int main(int argc, char **argv) {
     scanf("%i", &numHilos);
     fflush(stdin);
     fflush(stdout);
+    printf("Descodificando Archivo");
+    
     pthread_t thread[numHilos];
-
-    printf("Codificando Archivo");
-
     for (int i = 1; i <= numHilos; i++) {
       if (i % 2 == 0) {
-        pthread_create(&thread[i], NULL, (void *) &get_Element, NULL);
+        pthread_create(&thread[i], NULL, (void *) &getElement, NULL);
       } else {
-        pthread_create(&thread[i], NULL, (void *) &put_Element, NULL);
+        pthread_create(&thread[i], NULL, (void *) &putElement, NULL);
       }
     }
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
     free(llave);
     fclose(file);
     fclose(cesar);
+    printf("\n<=Archivo Descodificado=>");
   }
-  printf("\n<=Archivo Codificado=>");
   return 0;
 }

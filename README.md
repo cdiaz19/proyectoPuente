@@ -4,7 +4,7 @@
 
 * Proyecto0 - Problema del Puente Estrecho
 * Proyecto1 - Algoritmo de Hufmann
-* Proyecto2 - Codificador de Cesar
+* Proyecto2 - Codificador/Decodificador de Cesar
 
 ### Tech
 
