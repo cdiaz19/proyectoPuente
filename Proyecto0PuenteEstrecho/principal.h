@@ -1,12 +1,14 @@
-#include"bridge.h"
-#include"roadSide.h"
+#include "bridge.h"
+#include "roadSide.h"
 static Bridge bridge;
 static RoadSide wes,ews;
 static pthread_mutex_t wait;
 static int * var;
 static int semaphoreWE,semaphoreEW;
 static int contWE,contEW;
-//Metodo para dar permiso de cruzar el puente
+
+/* Metodos para cruzar el puente */
+
 int fifo(Car * car){
 	pthread_mutex_lock(&wait);
 	pthread_mutex_lock(&bridge.carQueue->wait);
@@ -181,13 +183,9 @@ int selecMethod(Car * car){
 	if(var[0] == 3)
 		return officer(car);
 }
-//Metodo para manejar carros
-//timespec = estructura para llevar segundos y milisegundos
-//tim.tv_sec = segundos a esperar
-//tim.tv_nsec = nanosegundos a esperar 500000000L = 0.5 segundos
+
 void drive(Car * car){
 	Car * ahead;
-	//pide permiso
 	while(selecMethod(car));
 	enqueue(bridge.carQueue,car);
 	if(car->side){
@@ -220,42 +218,39 @@ void drive(Car * car){
 		}
 		pthread_mutex_unlock(&bridge.carQueue->wait);
 		car->distance += ((float)car->varSpeed/100);
-		//car->distance += (double)(car->varSpeed*1000)/360000;
 		usleep(100000);
 	}
+  
 	dequeue(bridge.carQueue);
 	free(car);
 	pthread_exit(0);
 }
 
-
-
-//Metodo para iniciar la creacion de carros
-// side = 1-> we, 0->ew
-void start(int side){
+void startCreateCars(int side){
 	pthread_t thread;
 	Car * car;
 	int i = 0;
+  int y = 0;
 	double time;
-	while(i<30){
-		if(side){
-			car = createCar(i,side,var[6],var[7]);
-			wes.createdCars++;
-			//time = (log(i)*(-1/var[2]));
-		}
-		else{
-			car = createCar(i,side,var[8],var[9]);
-			ews.createdCars++;
-			//time = (log(i)*(-1/var[3]));
-		}
-		i++;
-		pthread_create(&thread, NULL, (void *)drive, car);
-		//usleep(1000000);
+	if(side){
+    while(i<var[14]) {
+		  car = createCar(i,side, var[6], var[7]);
+		  wes.createdCars++;
+      i++;
+      pthread_create(&thread, NULL, (void *)drive, car);
+    }
 	}
+	else{
+    while(y<var[15]) {
+      car = createCar(i,side,var[8],var[9]);
+      ews.createdCars++;
+      y++;
+      pthread_create(&thread, NULL, (void *)drive, car);
+    }
+  }
 }
 
-//Metodo para imprimir por pantalla
-void monitor(){
+void panel(){
 	int i;
 	Car * car;
 	time_t start, end;
@@ -264,17 +259,28 @@ void monitor(){
 	while(1){
 		time(&end);
 		elapsed = difftime(end, start);
-		printf("Carros en direccion este-oeste: %d\n",ews.createdCars);
-		printf("Carros Direccion oeste-este: %d\n",wes.createdCars);
+    printf("== DATOS PRINCIPALES == \n");
+		printf("Carros en direccion Este-Oeste: %d\n",ews.createdCars);
+		printf("Carros Direccion Oeste-Este: %d\n",wes.createdCars);
+    if(var[0] == 1) {
+      printf("Forma de Paso: FIFO \n\n");
+    }
+    if(var[0] == 2) {
+      printf("Forma de Paso: Semaforos \n");
+      printf("Duracion del Semaforo de Oeste-Este: %i\n\n", var[10]);
+      printf("Duracion del Semaforo de Este-Oeste: %i\n\n", var[11]);
+    } 
+    if(var[0] == 3) {
+      printf("Forma de Paso: Oficial \n\n");
+    }
+
+    printf("== DATOS ACTUALES == \n");
 		printf("Carros en puente: %d\n",bridge.carQueue->size);
 		printf("Tamaño del puente: %d\n",bridge.size);
 		printf("Lado activo:Oeste-Este %d\n",bridge.we);
 		printf("Lado activo:Este-Oeste %d\n",bridge.ew);
-		if(var[0] == 3){
-			printf("Cantidad Oeste-Este: %d\n",contWE);
-			printf("Cantidad Este-Oeste: %d\n",contEW);
-		}
-		printf("Tiempo: %f\n",elapsed);
+		printf("Tiempo: %f\n\n", elapsed);
+
 		printf("Posicion Carro  Direccion   Velocidad Actual Velocidad Original Distancia \n");
 		for(i = 0; i < bridge.carQueue->size;i++){
 			car = get(bridge.carQueue,i);
@@ -283,22 +289,8 @@ void monitor(){
 			else
 			printf("   %d      %d     este-oeste       %d                %d            %f \n",car->pos,car->num,car->varSpeed,car->speed,car->distance);
 		}	
+
 		usleep(16666);
 		printf("\033[H\033[J");
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,7 @@
-#include"car.h"
+#include "car.h"
 #include <pthread.h>
+
+/* Estructuras */
 typedef struct Node{
 	Car * car;
 	struct Node * next;
@@ -12,14 +14,26 @@ typedef struct Queue{
 	pthread_mutex_t wait;
 }Queue;
 
-Node * createNode(Car * car){
+/* Declaracion de Metodos */
+
+Node * createNode(Car * car);
+Queue * createQueue();
+void enqueue(Queue * queue, Car * car);
+void update(Queue * queue);
+void update(Queue * queue);
+Car * dequeue(Queue * queue);
+Car * get(Queue * queue, int pos);
+
+/* Desarrollo de Metodos */
+
+Node * createNode(Car * car) {
 	Node * node = (Node*)malloc(sizeof(Node));
 	node->next = NULL;
 	node->car = car;
 	return node;
 }
 
-Queue * createQueue(){
+Queue * createQueue() {
 	Queue * queue = (Queue*)malloc(sizeof(Queue));
 	pthread_mutexattr_t Attr;
 	queue->first = NULL;
@@ -31,7 +45,7 @@ Queue * createQueue(){
 	return queue;
 }
 
-void enqueue(Queue * queue, Car * car){
+void enqueue(Queue * queue, Car * car) {
 	car->pos = queue->size;
 	if(!queue->first){
 		queue->first = createNode(car);
@@ -44,7 +58,7 @@ void enqueue(Queue * queue, Car * car){
 	queue->size++;
 }
 
-void update(Queue * queue){
+void update(Queue * queue) {
 	Node * aux = queue->first;
 	Car * car;
 	int i;
@@ -55,7 +69,7 @@ void update(Queue * queue){
 	}
 }
 
-Car * dequeue(Queue * queue){
+Car * dequeue(Queue * queue) {
 	pthread_mutex_lock(&queue->wait);
 	if(queue->size > 0){
 		Node * aux = queue->first;
@@ -72,7 +86,7 @@ Car * dequeue(Queue * queue){
 	}
 }
 
-Car * get(Queue * queue, int pos){
+Car * get(Queue * queue, int pos) {
 	Node * aux = queue->first;
 	int i;
 	if(aux){
@@ -90,4 +104,3 @@ Car * get(Queue * queue, int pos){
 		return NULL;
 	}
 }
-

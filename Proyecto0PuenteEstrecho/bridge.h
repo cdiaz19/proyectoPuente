@@ -1,6 +1,7 @@
-#include"queue.h"
-//Puente
-//size = tamaño del puente
+#include "queue.h"
+
+/* Estructuras */
+
 typedef struct Bridge{
 	int size;
 	int ew;
@@ -8,8 +9,13 @@ typedef struct Bridge{
 	Queue * carQueue;
 } Bridge;
 
-//Constructor del puente
-Bridge createBridge(int size){
+/* Declaracion de Metodos */
+
+Bridge createBridge(int size);
+
+/* Desarrollo de Metodos */
+
+Bridge createBridge(int size) {
 	Bridge bridge;
 	bridge.size = size;
 	bridge.ew = 0;
@@ -17,13 +23,3 @@ Bridge createBridge(int size){
 	bridge.carQueue = createQueue(size);
 	return bridge;
 }
-
-
-
-
-
-
-
-
-
-

@@ -48,7 +48,7 @@ int readChar(FILE *file) { return fgetc(file); }
 
 int getTamFile(FILE *file) {
   fseek(file, 0, SEEK_END);
-  int aux = ((ftell(file)) - 1);
+  int aux = ((ftell(file)) );
   fseek(file, 0, SEEK_SET);
   return aux;
 }
@@ -113,7 +113,7 @@ void putElement(void) {
 
 int main(int argc, char **argv) {
 
-  file = fopen("txt", "rb");
+  file = fopen("BIBLIACOMPLETA.txt", "rb");
   if (!file) {
     printf("El archivo no existe..");
   } else {

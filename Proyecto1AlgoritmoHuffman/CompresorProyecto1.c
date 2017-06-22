@@ -332,7 +332,7 @@ void createCompress(char array[], TableCode* codes[]) {
   char flag = array[0];
   int h = 0;
   int sizeCompress;
-  FILE *compress = fopen ( "Archivo.txt.edy", "ab" );
+  FILE *compress = fopen ( "Archivo.txt.edy", "wb" );
 
   while(h < strlen(array)) {
     for (int i = 0; i < tamCodesArray; ++i) {
@@ -353,7 +353,7 @@ void createCompress(char array[], TableCode* codes[]) {
 }
 
 void showTable(TableCode* c1) {
-  FILE *fp = fopen ( "Archivo.txt.huff", "a" );
+  FILE *fp = fopen ( "Archivo.txt.huff", "w" );
 
   printf("Letra: %c ",c1->letra);
   printf("Codigo: ");
