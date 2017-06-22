@@ -30,6 +30,7 @@ FILE *file;
 FILE *cesar;
 char *llave;
 int tamBuffer;
+static char *archivo;
 
 /* Declaracion de Metodos */
 
@@ -39,8 +40,23 @@ void init();
 int readChar(FILE *file);
 void writeChar(FILE *Cesar, char dato);
 int getTamFile(FILE *file);
+char * append(char *s);
 
 /* Implementacion de Metodos */
+
+char * append(char *s) {
+  int len = strlen(s);
+  char buf[len+6];
+  strcpy(buf, s);
+  buf[len] = '.';
+  buf[len+1] = 'c';
+  buf[len+2] = 'e';
+  buf[len+3] = 's';
+  buf[len+4] = 'a';
+  buf[len+5] = 'r';
+  buf[len+6] = 0;
+  return strdup(buf);
+}
 
 void writeChar(FILE *Cesar, char dato) { fprintf(Cesar, "%c", dato); }
 
@@ -97,7 +113,7 @@ void putElement(void) {
 
     if (!feof(file)) {
       int val = readChar(file);
-      char dato = val - llave[posLlave] == 0 ? val : val - llave[posLlave];
+      char dato = val + llave[posLlave] == 0 ? val : val + llave[posLlave];
 
       buffer[entrada] = dato;
       posLlave = (posLlave + 1) % strlen(llave);
@@ -112,12 +128,14 @@ void putElement(void) {
 }
 
 int main(int argc, char **argv) {
+  archivo = argv[1];
 
-  file = fopen("BIBLIACOMPLETA.txt", "rb");
+  file = fopen(archivo, "rb");
   if (!file) {
     printf("El archivo no existe..");
   } else {
-    cesar = fopen("Archivo.txt.cesar", "w");
+    archivo = append(archivo);
+    cesar = fopen(archivo, "w");
 
     init();
     printf("Inicio del programa \n");
@@ -133,8 +151,6 @@ int main(int argc, char **argv) {
     scanf("%i", &numHilos);
     fflush(stdin);
     fflush(stdout);
-
-    printf("Codificando Archivo");
 
     pthread_t thread[numHilos];
     for (int i = 1; i <= numHilos; i++) {

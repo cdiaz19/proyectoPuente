@@ -30,7 +30,7 @@ FILE *file;
 FILE *cesar;
 char *llave;
 char dato;
-
+static char *archivo;
 
 /* Declaracion de Metodos */
 
@@ -40,8 +40,20 @@ void init();
 int readChar(FILE *file);
 void writeChar(FILE *Cesar, char dato);
 int getTamFile(FILE *file);
+char * substract(char *s);
 
 /* Implementacion de Metodos */
+
+char * substract(char *s) {
+  int len = strlen(s);
+  char buf[len-1];
+  int i;
+  for(i = 0; i < len-6; i++){
+    buf[i] = s[i];
+  }
+  buf[i] = 0;
+    return strdup(buf);
+}
 
 void writeChar(FILE *Cesar, char dato) {
   fprintf(Cesar, "%c", dato);
@@ -53,7 +65,7 @@ int readChar(FILE *file) {
 
 int getTamFile(FILE *file) {
   fseek(file, 0, SEEK_END);
-  int aux = ((ftell(file)) - 1);
+  int aux = ((ftell(file)));
   fseek(file, 0, SEEK_SET);
   return aux;
 }
@@ -100,7 +112,7 @@ void putElement(void) {
     if (!feof(file)) {
       int val = readChar(file);
 
-      char dato = val == 32 ? ' ' : val + llave[posLlave];
+      char dato = val - llave[posLlave] == 0 ? val : val - llave[posLlave];
 
       buffer[entrada] = dato;
       posLlave = (posLlave + 1) % strlen(llave);
@@ -115,11 +127,16 @@ void putElement(void) {
 
 int main(int argc, char **argv) {
 
-  file = fopen("Archivo.txt.cesar", "rb");
+  archivo = argv[1];
+  file = fopen(archivo, "rb");
+
   if (!file) {
     printf("El archivo no existe..");
   } else {
-    cesar = fopen("Archivo.txt.descifrado", "w");
+    
+    archivo = substract(archivo);
+    cesar = fopen(archivo, "w");
+
     init();
     printf("Inicio del programa \n");
 
@@ -134,7 +151,6 @@ int main(int argc, char **argv) {
     scanf("%i", &numHilos);
     fflush(stdin);
     fflush(stdout);
-    printf("Descodificando Archivo");
     
     pthread_t thread[numHilos];
     for (int i = 1; i <= numHilos; i++) {

@@ -11,7 +11,7 @@ void loadFile() {
 	int read;
 	int i = 0;
 	var = malloc(16*sizeof(int));
-	FILE * fp = fopen("output.txt", "r");
+	FILE * fp = fopen("confg.txt", "r");
 	if (fp == NULL)
 		exit(EXIT_FAILURE);
 	while ((read = getline(&line, &len, fp)) != -1) {

@@ -1,10 +1,6 @@
 # Proyectos Sistemas Operativos
 
-### Proyectos
-
-* Proyecto1 - Problema del Puente Estrecho
-* Proyecto2 - Algoritmo de Hufmann
-* Proyecto3 - Codificador/Decodificador de Cesar
+###  Proyecto1 - Problema del Puente Estrecho
 
 ### Tech
 
@@ -13,7 +9,7 @@
 ### Flujo de Trabajo
 Clonar Repositorio
 ```sh
-git clone https://github.com/cdiaz19/proyectoPuente.git
+git clone https://github.com/cdiaz19/proyectosSistemasOperativos.git
 ```
 Enviar Cambios
 ```sh
@@ -30,5 +26,6 @@ Ejecutar
 ```sh
 ./*nombre del ejecutable*
 ```
-### Referencias
-* Github = http://rogerdudler.github.io/git-guide/index.es.html
+
+### Archivos de Prueba
+* confg = Es el archivo de configuración.
