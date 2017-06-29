@@ -28,4 +28,4 @@ Ejecutar
 ```
 
 ### Archivos de Prueba
-* confg = Es el archivo de configuración.
+* output = Es el archivo de configuración.

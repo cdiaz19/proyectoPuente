@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      main.c
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include "principal.h"
 
 /* Declaracion de Metodos */
@@ -11,7 +20,7 @@ void loadFile() {
 	int read;
 	int i = 0;
 	var = malloc(16*sizeof(int));
-	FILE * fp = fopen("confg.txt", "r");
+	FILE * fp = fopen("output.txt", "r");
 	if (fp == NULL)
 		exit(EXIT_FAILURE);
 	while ((read = getline(&line, &len, fp)) != -1) {

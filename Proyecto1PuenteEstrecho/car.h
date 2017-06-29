@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      car.h
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>

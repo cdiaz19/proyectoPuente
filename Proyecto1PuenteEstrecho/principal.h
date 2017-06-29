@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      principal.h
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include "bridge.h"
 #include "roadSide.h"
 static Bridge bridge;
@@ -242,7 +251,7 @@ void startCreateCars(int side){
 	}
 	else{
     while(y<var[15]) {
-      car = createCar(i,side,var[8],var[9]);
+      car = createCar(y,side,var[8],var[9]);
       ews.createdCars++;
       y++;
       pthread_create(&thread, NULL, (void *)drive, car);
@@ -250,47 +259,100 @@ void startCreateCars(int side){
   }
 }
 
+void gotoxy (int x,int y){ //reubicacion del puntero en pantalla
+printf("\033[%d;%df", y,x);
+	};
+
+void imprime()
+{
+system("clear");
+printf("Proyecto puente estrecho \n");
+printf("David Ugalde Solis, Cristian Diaz \n \n");
+printf("Modo de interaccion: %i",var[0]);
+
+gotoxy(74,9);
+printf("Carros en puente: %d\n",bridge.carQueue->size);
+gotoxy(80,3);
+printf("Tamaño del puente: %d\n",bridge.size);
+
+gotoxy(57,5);
+printf("\t\t Vehiculos este-oeste: %i ",ews.createdCars);
+gotoxy(0,5);
+printf("\t\t Vehiculos oeste-este: %i ",wes.createdCars);
+gotoxy(53,9);
+printf("Simulacion Puente");
+gotoxy((55)-bridge.size/2,10);
+printf("{");
+for(int i=0;i<var[1];i++){
+printf("-");
+}
+printf("}");
+
+gotoxy(1,12);
+printf("Lista de Vehiculos Oeste-Este");
+gotoxy(1,13);
+printf("Posicion Carro Vel.Actual Vel.Original Distancia");
+for(int i=0;i<var[14];i++)
+{
+gotoxy(1,14+i);
+printf("   -_-     %d       %d         %d          %f   ", i,0,0,0);
+}
+
+
+gotoxy(60,12);
+printf("Lista de Vehiculos Este-Oeste");
+gotoxy(60,13);
+printf("Posicion Carro Vel.Actual Vel.Original Distancia");
+for(int i=0;i<var[15];i++)
+{
+gotoxy(60,14+i);
+printf("   -_-     %d       %d         %d          %f   ", i,0,0,0);
+}
+
+}
 void panel(){
 	int i;
 	Car * car;
 	time_t start, end;
 	double elapsed;
 	time(&start);
+        char Puente[var[1]];
+        for(int i=0;i<bridge.size;i++){Puente[i]='0';}
+        imprime();
 	while(1){
 		time(&end);
 		elapsed = difftime(end, start);
-    printf("== DATOS PRINCIPALES == \n");
-		printf("Carros en direccion Este-Oeste: %d\n",ews.createdCars);
-		printf("Carros Direccion Oeste-Este: %d\n",wes.createdCars);
-    if(var[0] == 1) {
-      printf("Forma de Paso: FIFO \n\n");
-    }
-    if(var[0] == 2) {
-      printf("Forma de Paso: Semaforos \n");
-      printf("Duracion del Semaforo de Oeste-Este: %i\n\n", var[10]);
-      printf("Duracion del Semaforo de Este-Oeste: %i\n\n", var[11]);
-    } 
-    if(var[0] == 3) {
-      printf("Forma de Paso: Oficial \n\n");
-    }
-
-    printf("== DATOS ACTUALES == \n");
-		printf("Carros en puente: %d\n",bridge.carQueue->size);
-		printf("Tamaño del puente: %d\n",bridge.size);
-		printf("Lado activo:Oeste-Este %d\n",bridge.we);
-		printf("Lado activo:Este-Oeste %d\n",bridge.ew);
-		printf("Tiempo: %f\n\n", elapsed);
-
-		printf("Posicion Carro  Direccion   Velocidad Actual Velocidad Original Distancia \n");
-		for(i = 0; i < bridge.carQueue->size;i++){
+                gotoxy(90,1);
+                printf("Tiempo: %f\n",elapsed);
+                gotoxy(74,9);
+                printf("Carros en puente: %d\n",bridge.carQueue->size);
+                gotoxy((55)-bridge.size/2,10);
+                printf("{");
+                for(int i=0;i<var[1];i++){
+                printf("-");
+                 }
+                printf("}");
+	for(i = 0; i < bridge.carQueue->size;i++){
 			car = get(bridge.carQueue,i);
-			if(car->side)
-			printf("   %d       %d    oeste-este       %d                %d            %f \n",car->pos,car->num,car->varSpeed,car->speed,car->distance);
-			else
-			printf("   %d      %d     este-oeste       %d                %d            %f \n",car->pos,car->num,car->varSpeed,car->speed,car->distance);
-		}	
+			if(car->side){
+gotoxy((56)-(bridge.size/2)+(int)car->distance,10);
+printf("O");
+fflush(stdout);
+gotoxy(1,14+car->num);
+printf("    %d      %d       %d         %d          %f   ",car->pos,car->num,car->varSpeed,car->speed,car->distance);
+fflush(stdout);
+			}else{
+
+gotoxy((56)+(bridge.size/2)-(int)car->distance,10);
+printf("E");
+fflush(stdout);
+gotoxy(60,14+car->num);
+printf("    %d      %d       %d         %d          %f   ",car->pos,car->num,car->varSpeed,car->speed,car->distance);
+fflush(stdout);
+		}
+
+}
 
 		usleep(16666);
-		printf("\033[H\033[J");
 	}
 }

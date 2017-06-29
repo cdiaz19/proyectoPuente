@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      roadSide.h
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include <pthread.h>
 
 typedef struct RoadSide{

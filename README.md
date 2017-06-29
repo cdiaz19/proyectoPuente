@@ -3,7 +3,7 @@
 ### Proyectos
 
 * Proyecto1 - Problema del Puente Estrecho
-* Proyecto2 - Algoritmo de Hufmann
+* Proyecto2 - Algoritmo de Hufmann (Compresor & Descompresor)
 * Proyecto3 - Codificador/Decodificador de Cesar
 
 ### Tech

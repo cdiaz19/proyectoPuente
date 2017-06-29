@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      bridge.c
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include "queue.h"
 
 /* Estructuras */

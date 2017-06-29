@@ -1,3 +1,12 @@
+/*
+ *      Proyecto 1 de Sistemas Operativos
+ *      queue.h
+ *      
+ *      David Ugalde
+ *      Cristian Díaz
+ * 
+ */
+
 #include "car.h"
 #include <pthread.h>
 

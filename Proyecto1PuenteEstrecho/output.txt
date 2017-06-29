@@ -1,0 +1,16 @@
+3  <-0 metodo a usar
+15 <-1 largo del puente
+2 <-2 media del tiempo de llegada oeste-este
+2 <-3 media del tiempo de llegada este-oeste
+20 <-4 velocidad promedio de oeste-este
+6 <-5 velocidad promedio de este-oeste
+10 <-6 velocidad minima de oeste-este
+30 <-7 velocidad maxima de oeste-este
+3 <-8 velocidad minima de este-oeste
+9 <-9 velocidad maxima de este-oeste
+10 <-10 tiempo del semaforo de oeste-este
+12 <-11 tiempo del semaforo de este-oeste
+5 <-12 contador del oficial de oeste-este
+7 <-13 contador del oficial de este-oeste
+15 <-14 cantidad de carros oeste-este
+40 <-15 cantidad de carros este-oeste 
