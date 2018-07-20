@@ -24,6 +24,11 @@ typedef struct Car{
 } Car;
 
 /* Globales */
+/* Heclord 1 */
+/* Heclord 2 */
+/* Heclord 3 */
+
+
 
 struct Car;
 
